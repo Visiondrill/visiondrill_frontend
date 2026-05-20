@@ -13,7 +13,8 @@ import {
   Plus,
   MessageSquare,
   Wallet,
-  Cpu
+  Cpu,
+  Sparkles
 } from 'lucide-react';
 import BrandLogo from '@/components/BrandLogo';
 
@@ -23,7 +24,9 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   const navItems = [
     { name: 'Dashboard', href: '/instructor', icon: LayoutDashboard },
     { name: 'My courses', href: '/instructor/courses', icon: BookOpen },
+    { name: 'Create quiz', href: '/instructor/quizzes/create', icon: Sparkles },
     { name: 'Student assets', href: '/instructor/students', icon: Users },
+
     { name: 'Analytics', href: '/instructor/analytics', icon: BarChart3 },
     { name: 'Inbox', href: '/instructor/messages', icon: MessageSquare },
   ];
@@ -98,17 +101,19 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
       </aside>
 
       {/* 2. Primary Executive Pane */}
-      <section className="flex-1 flex flex-col min-w-0 bg-[#FDFDFF] overflow-y-auto">
+      <section className="flex-1 flex flex-col min-w-0 bg-[#FDFDFF] overflow-hidden">
         {/* Mobile Header (Hidden on Desktop) */}
-        <div className="lg:hidden flex items-center justify-between p-6 bg-white border-b border-gray-100">
+        <div className="lg:hidden flex items-center justify-between p-6 bg-white border-b border-gray-100 shrink-0">
            <BrandLogo subtitle="Instructor" />
            <button className="p-3 bg-blue-50 text-blue-600 rounded-xl">
               <Plus size={20} />
            </button>
         </div>
 
-        <div className="flex-1 p-6 lg:p-10">
-          {children}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+           <div className="p-6 lg:p-10">
+             {children}
+           </div>
         </div>
       </section>
     </div>

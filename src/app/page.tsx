@@ -114,12 +114,12 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {!user ? (
               <div className="flex items-center gap-3">
-                <Link href="/login" className="text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors mr-2">Login</Link>
-                <Link href="/register">
-                  <button className="h-9 px-5 border border-gray-200 text-gray-600 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all">Join us</button>
-                </Link>
                 <Link href="/register?type=instructor">
                   <button className="h-9 px-5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-all">Teach on Visiondrill</button>
+                </Link>
+                <Link href="/login" className="text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors mx-2">Login</Link>
+                <Link href="/register">
+                  <button className="h-9 px-5 border border-gray-200 text-gray-600 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all">Join us</button>
                 </Link>
               </div>
             ) : (
@@ -151,14 +151,14 @@ export default function Home() {
             <div className="flex flex-col gap-3 pt-3 border-t border-gray-100">
               {!user ? (
                 <>
+                  <Link href="/register?type=instructor" onClick={() => setMobileMenuOpen(false)}>
+                    <button className="w-full h-10 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700">Teach on Visiondrill</button>
+                  </Link>
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full h-10 border border-gray-200 rounded-xl font-semibold text-sm text-gray-600 hover:border-blue-300">Login</button>
                   </Link>
                   <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full h-10 border border-gray-100 rounded-xl font-semibold text-sm text-gray-400 hover:bg-gray-50">Join us</button>
-                  </Link>
-                  <Link href="/register?type=instructor" onClick={() => setMobileMenuOpen(false)}>
-                    <button className="w-full h-10 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700">Teach on Visiondrill</button>
                   </Link>
                 </>
               ) : (

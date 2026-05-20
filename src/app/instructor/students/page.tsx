@@ -98,14 +98,19 @@ export default function InstructorStudents() {
             </p>
           </div>
           
-          <div className="flex items-center gap-6 bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
-             <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                <Users size={24} />
-             </div>
-             <div>
-                <p className="text-xs font-medium text-gray-400 mb-1">Total network</p>
-                <p className="text-3xl font-black text-gray-900 tracking-tighter">{students.length}</p>
-             </div>
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex items-center gap-6 bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+               <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                  <Users size={24} />
+               </div>
+               <div>
+                  <p className="text-xs font-medium text-gray-400 mb-1">Total network</p>
+                  <p className="text-3xl font-black text-gray-900 tracking-tighter">{students.length}</p>
+               </div>
+            </div>
+            <button className="flex items-center gap-3 px-8 h-20 bg-blue-600 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest text-[10px] active:scale-95 shrink-0">
+               <Mail size={18} /> Bulk Invite Assets
+            </button>
           </div>
         </div>
       </header>

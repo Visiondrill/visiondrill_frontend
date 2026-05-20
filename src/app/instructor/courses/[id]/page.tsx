@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { api } from '@/lib/api';
+import { api, getCsrfCookie } from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -38,9 +38,11 @@ export default function InstructorCourseDetail() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
+        await getCsrfCookie();
         const [courseRes, studentsRes] = await Promise.all([
           api.get(`/courses/${id}`),
           api.get(`/instructor/courses/${id}/students`),
+          getCsrfCookie()
         ]);
         const data = courseRes.data;
         setCourse(data);

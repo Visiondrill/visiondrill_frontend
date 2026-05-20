@@ -6,7 +6,8 @@ import { api } from '@/lib/api';
 import { Section, Lesson, Course } from '@/types/curriculum';
 import LearnSidebar from '@/components/LearnSidebar';
 import AIAssistantSidebar from '@/components/AIAssistantSidebar';
-import { Loader2, Play, ChevronLeft, ChevronRight, Menu, Brain, Volume2, Maximize, Settings } from 'lucide-react';
+import { Loader2, Play, ChevronLeft, ChevronRight, Menu, Brain, Volume2, Maximize, Settings, FileText } from 'lucide-react';
+
 import Link from 'next/link';
 
 export default function LearnPage() {
@@ -190,23 +191,28 @@ export default function LearnPage() {
         {/* Main Player View */}
         <main className="flex-grow flex flex-col bg-gray-950 relative">
            <div className="flex-grow flex items-center justify-center">
-             {activeLesson?.content?.lesson_type === 'video' ? (
+             {activeLesson?.content?.content_type === 'video' ? (
                 <div className="w-full h-full max-h-[calc(100vh-12rem)] aspect-video bg-black relative group shadow-2xl">
+
                    {/* Placeholder for real Video Player (e.g. Video.js or Youtube embed) */}
-                   {activeLesson.content.video_url?.includes('youtube.com') || activeLesson.content.video_url?.includes('youtu.be') ? (
+                   {activeLesson?.content?.video_url?.includes('youtube.com') || activeLesson?.content?.video_url?.includes('youtu.be') ? (
                       <iframe 
-                        src={`https://www.youtube.com/embed/${activeLesson.content.video_url.split('v=')[1] || activeLesson.content.video_url.split('/').pop()}`}
+                        src={`https://www.youtube.com/embed/${activeLesson?.content?.video_url?.split('v=')[1] || activeLesson?.content?.video_url?.split('/')?.pop() || ''}`}
                         className="w-full h-full"
                         allowFullScreen
                       />
                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center">
-                         <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-6">
-                            <Play fill="white" className="text-white ml-1" size={32} />
-                         </div>
-                         <p className="text-white/60 font-medium italic">Loading Video Asset...</p>
-                         <p className="text-white/20 text-[10px]  font-black tracking-widest mt-2">{activeLesson.content.video_url}</p>
+                      <div className="w-full h-full">
+                        {activeLesson?.content?.video_url && (
+                          <video 
+                            src={activeLesson?.content?.video_url?.startsWith('http') ? activeLesson?.content?.video_url : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/videos/${activeLesson?.content?.video_url}`}
+                            controls 
+                            className="w-full h-full object-contain"
+                          />
+
+                        )}
                       </div>
+
                    )}
                    
                    {/* Player Overlay Controls (Visual Only) */}
@@ -229,10 +235,48 @@ export default function LearnPage() {
                    <p className="text-gray-500 font-medium mb-10 leading-relaxed">This lesson is an interactive quiz designed to test your knowledge of the previous concepts.</p>
                    <button className="px-10 py-5 bg-blue-600 text-white font-black rounded-2xl  tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">Start Knowledge Drill</button>
                 </div>
-             ) : (
-                <div className="max-w-3xl w-full h-full overflow-y-auto px-12 py-20 bg-white text-gray-800 rounded-t-3xl shadow-2xl mt-12">
-                   <h2 className="text-4xl font-black  text-gray-900 mb-8 border-l-8 border-blue-600 pl-6">{activeLesson?.title}</h2>
-                   <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: activeLesson?.content?.body || 'No content provided for this lesson.' }}></div>
+              ) : activeLesson?.content?.content_type === 'article' || activeLesson?.content?.body || activeLesson?.content?.document_url ? (
+                <div className="max-w-4xl w-full h-[calc(100vh-8rem)] overflow-y-auto px-8 md:px-16 py-16 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl mt-8 animate-in fade-in slide-in-from-bottom-4">
+                   <div className="mb-10 pb-10 border-b border-gray-50">
+                      <div className="flex items-center gap-2 mb-4">
+                         <span className="text-[10px] font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-full  tracking-widest uppercase">Reading Material</span>
+                      </div>
+                      <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter leading-none">{activeLesson?.title}</h2>
+                   </div>
+
+                   {/* Main Body Text */}
+                   <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-700 min-h-[200px]" 
+                      dangerouslySetInnerHTML={{ __html: activeLesson?.content?.body || 'No text content provided for this lesson.' }} 
+                   />
+
+                   {/* Attached Documents */}
+                   {activeLesson?.content?.document_url && (
+                      <div className="mt-16 p-8 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                         <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100">
+                               <FileText className="text-gray-400" size={28} />
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black text-gray-400  tracking-widest uppercase mb-1">Attached Reference</p>
+                               <p className="text-sm font-bold text-gray-900 ">{activeLesson.content.document_url}</p>
+                            </div>
+                         </div>
+                         <a 
+                           href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/lessons/documents/${activeLesson.content.document_url}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="px-6 py-3 bg-gray-900 text-white rounded-xl font-black text-[10px]  tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
+                         >
+                            Download Document
+                         </a>
+                      </div>
+                   )}
+                </div>
+              ) : (
+                <div className="max-w-2xl w-full bg-white rounded-[2rem] p-12 text-center shadow-2xl">
+                   <Play className="mx-auto mb-6 text-gray-200" size={64} />
+                   <h2 className="text-2xl font-black text-gray-900  mb-4">Empty Lesson</h2>
+                   <p className="text-gray-500 font-medium leading-relaxed">No content has been deployed to this lesson yet.</p>
                 </div>
              )}
            </div>

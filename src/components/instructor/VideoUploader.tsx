@@ -49,8 +49,17 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
 
   const uploadVideoFile = async (): Promise<string> => {
     if (!file) throw new Error('No file selected');
+
+    // Mobile Bandwidth Optimization: Cap upload size on mobile devices to prevent timeouts and high data usage
+    const MAX_MOBILE_FILE_MB = 50; 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    
+    if (isMobile && (file.size / 1024 / 1024) > MAX_MOBILE_FILE_MB) {
+        throw new Error(`Mobile bandwidth limits: File exceeds ${MAX_MOBILE_FILE_MB}MB. Please compress your video or use a desktop/Wi-Fi connection to deploy this master file.`);
+    }
+
     const formData = new FormData();
-    formData.append('video', file);
+    formData.append('file', file);
 
     const response = await api.post(`/upload/${lessonId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -312,13 +321,9 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
 
             <button
               type="submit"
-              disabled={status === 'uploading' || status === 'transcribing'}
-              className="w-full h-20 bg-blue-600 text-white font-black rounded-[2rem] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-blue-200  tracking-[0.2em] text-sm flex items-center justify-center gap-3 active:scale-[0.98]"
+              className="w-full h-20 bg-blue-600 text-white font-black rounded-[2rem] hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200  tracking-[0.2em] text-sm flex items-center justify-center gap-3 active:scale-[0.98]"
             >
-              {status === 'uploading' || status === 'transcribing'
-                ? <><Loader2 className="animate-spin" size={20} /> Processing Intelligence…</>
-                : <><Sparkles size={20} className="text-blue-200" /> Start Transcription Engine</>
-              }
+              <Sparkles size={20} className="text-blue-200" /> Start Transcription Engine
             </button>
           </form>
         )}

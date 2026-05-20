@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera } from 'lucide-react';
+import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera, Globe } from 'lucide-react';
 import Button from '@/components/Button';
 
 export default function InstructorSettings() {
@@ -174,6 +174,45 @@ export default function InstructorSettings() {
                     onChange={e => setFormData({...formData, long_description: e.target.value})}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-purple-50 focus:border-purple-400 outline-none font-medium text-sm transition-all resize-none"
                   />
+                </div>
+              </div>
+
+              {/* External Integrations */}
+              <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm space-y-8">
+                <div className="flex items-center gap-2 mb-2 border-l-4 border-emerald-600 pl-4">
+                  <Globe size={18} className="text-emerald-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">External Integrations</h3>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                   <div className="flex items-center gap-5">
+                      <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                         <Camera size={24} />
+                      </div>
+                      <div>
+                         <h4 className="text-sm font-black text-gray-900">Zoom Meetings</h4>
+                         <p className="text-[10px] font-bold text-gray-400 tracking-tight mt-1">Host live sessions directly from your dashboard.</p>
+                      </div>
+                   </div>
+                   <button 
+                     type="button"
+                     className="px-6 py-3 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-black transition-all shadow-lg shadow-blue-100 active:scale-95"
+                   >
+                      CONNECT ACCOUNT
+                   </button>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100 opacity-50 grayscale cursor-not-allowed">
+                   <div className="flex items-center gap-5">
+                      <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                         <Mail size={24} />
+                      </div>
+                      <div>
+                         <h4 className="text-sm font-black text-gray-900">Google Calendar</h4>
+                         <p className="text-[10px] font-bold text-gray-400 tracking-tight mt-1">Sync your teaching schedule with your calendar.</p>
+                      </div>
+                   </div>
+                   <span className="px-4 py-2 bg-gray-200 text-gray-600 text-[10px] font-black rounded-lg">COMING SOON</span>
                 </div>
               </div>
 

@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import {
-  BookOpen, Users, Plus, Search, Filter, Layout, Trash2, Globe, Loader2, X, Sparkles
+  BookOpen, Users, Plus, Search, Filter, Layout, Trash2, Globe, Loader2, X, Sparkles,
+  ChevronRight, ShieldCheck, Zap, ArrowLeft, Check
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface Course {
@@ -24,14 +26,35 @@ interface Stats {
   published_count: number;
 }
 
+import CourseCreateModal from '@/components/instructor/CourseCreateModal';
+
 export default function InstructorCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ course_title: '', category_id: '', price: '' });
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
+
+  const handleModalSubmit = async (data: { course_title: string; category_id: string; price: string }) => {
+    setCreating(true);
+    try {
+      const payload = {
+        course_title: data.course_title,
+        category_id: data.category_id ? parseInt(data.category_id) : null,
+        price: data.price ? parseFloat(data.price) : 0
+      };
+      const res = await api.post('/instructor/create-course', payload);
+      setCourses(prev => [res.data, ...prev]);
+      setShowCreateModal(false);
+      router.push(`/instructor/courses/${res.data.id}/curriculum`);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -51,22 +74,6 @@ export default function InstructorCourses() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    try {
-      const res = await api.post('/instructor/create-course', {
-        ...createForm,
-        price: createForm.price ? parseFloat(createForm.price) : 0
-      });
-      setCourses(prev => [res.data, ...prev]);
-      setShowCreateModal(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const filtered = courses.filter(c =>
     c.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,6 +89,7 @@ export default function InstructorCourses() {
   }
 
   return (
+    <>
     <div className="max-w-[1600px] mx-auto px-4 sm:px-8">
       <header className="mb-8">
         <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
@@ -136,7 +144,12 @@ export default function InstructorCourses() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-20">
          {filtered.map(course => (
-            <div key={course.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-all group">
+            <div 
+              key={course.id} 
+              onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
+              className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-all group cursor-pointer"
+            >
+
                <div className="relative h-56 bg-gray-100 overflow-hidden">
                   {course.thumbnail ? (
                      <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
@@ -164,30 +177,14 @@ export default function InstructorCourses() {
             </div>
          ))}
       </div>
-
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl p-12 relative">
-            <button onClick={() => setShowCreateModal(false)} className="absolute top-8 right-8 text-gray-400">
-              <X size={24} />
-            </button>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-8">New asset</h2>
-            <form onSubmit={handleCreate} className="space-y-6">
-               <input
-                  required
-                  placeholder="Module title..."
-                  value={createForm.course_title}
-                  onChange={e => setCreateForm({ ...createForm, course_title: e.target.value })}
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-8 focus:ring-cyan-50"
-               />
-               <button type="submit" disabled={creating} className="w-full py-5 bg-blue-950 text-white font-semibold rounded-xl text-sm hover:bg-black flex items-center justify-center gap-3 active:scale-95">
-                  {creating ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />} Create module
-               </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
+    <CourseCreateModal 
+      isOpen={showCreateModal} 
+      onClose={() => setShowCreateModal(false)}
+      onSubmit={handleModalSubmit}
+      isCreating={creating}
+    />
+    </>
   );
 }
 
@@ -205,3 +202,4 @@ function StatCard({ icon: Icon, label, value, badge, color }: any) {
     </div>
   );
 }
+

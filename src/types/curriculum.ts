@@ -3,9 +3,12 @@ export interface LessonContent {
   lesson_id: number;
   video_url: string | null;
   body: string | null;
-  lesson_type: 'video' | 'text' | 'quiz';
+  document_url: string | null;
+  content_type: 'video' | 'article' | 'quiz';
+  lesson_type?: 'video' | 'text' | 'quiz' | 'lecture';
   is_preview: boolean;
 }
+
 
 export interface Lesson {
   id: number;

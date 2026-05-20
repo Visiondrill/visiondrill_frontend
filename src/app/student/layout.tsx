@@ -89,9 +89,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       </aside>
 
       {/* 2. Main Content & Right Sidebar Container */}
-      <section className="flex-1 flex flex-col min-w-0 bg-[#FDFDFF] overflow-y-auto custom-scrollbar relative">
+      <section className="flex-1 flex flex-col min-w-0 bg-[#FDFDFF] overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden h-20 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-50">
+        <header className="lg:hidden h-20 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 relative z-50">
           <BrandLogo subtitle="Student" iconSize="sm" />
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-gray-50 rounded-xl text-gray-900">
              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -101,17 +101,19 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         {isMobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-[60] bg-white pt-24 px-6 space-y-4 animate-in slide-in-from-right">
              {navItems.map((item) => (
-               <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
-                 <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl text-lg font-black text-gray-900">
-                    <item.icon size={24} /> {item.name}
-                 </div>
-               </Link>
+                <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl text-lg font-black text-gray-900">
+                     <item.icon size={24} /> {item.name}
+                  </div>
+                </Link>
              ))}
           </div>
         )}
 
-        <div className="flex-1 p-6 lg:p-10">
-          {children}
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+           <div className="p-6 lg:p-10">
+             {children}
+           </div>
         </div>
       </section>
     </div>

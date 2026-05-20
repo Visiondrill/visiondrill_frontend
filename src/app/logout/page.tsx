@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, getCsrfCookie } from '@/lib/api';
+import { api } from '@/lib/api';
 
 export default function LogoutPage() {
   const router = useRouter();
@@ -10,14 +10,13 @@ export default function LogoutPage() {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        await getCsrfCookie().catch(() => {});
+        // The global api interceptor in lib/api.ts will handle 419 retries automatically
         await api.post('/logout');
       } catch (err) {
-        console.error('Logout error:', err);
+        console.error('Logout request failed:', err);
       } finally {
-        // Clear local storage or session cookies if any are set manually
+        // Always clear state and redirect regardless of server response
         localStorage.removeItem('token'); 
-        // Redirect to login
         router.push('/login');
       }
     };

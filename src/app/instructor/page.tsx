@@ -1,30 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getCsrfCookie } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
-  TrendingUp, 
-  Users, 
-  Play, 
-  BarChart3, 
-  Plus, 
-  MoreVertical, 
-  Star,
-  ChevronRight,
-  ShieldCheck,
-  Zap,
-  Globe,
-  Wallet,
-  Clock
+  TrendingUp, Users, Play, BarChart3, Plus, MoreVertical, Star, ChevronRight,
+  ShieldCheck, Zap, Globe, Wallet, Clock, Sparkles
 } from 'lucide-react';
+import CourseCreateModal from '@/components/instructor/CourseCreateModal';
 
 export default function InstructorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +27,8 @@ export default function InstructorDashboard() {
         const [meRes, coursesRes, statsRes] = await Promise.all([
            api.get('/me'),
            api.get('/instructor/courses'),
-           api.get('/instructor/dashboard-stats')
+           api.get('/instructor/dashboard-stats'),
+           getCsrfCookie()
         ]);
         setUser(meRes.data);
         setCourses(coursesRes.data);
@@ -46,7 +42,53 @@ export default function InstructorDashboard() {
     fetchData();
   }, []);
 
+  const handleCreateCourse = async (e: React.FormEvent, directTitle?: string) => {
+    if (e) e.preventDefault();
+    const title = directTitle || newCourseTitle;
+    if (!title.trim()) return;
+    
+    setIsCreating(true);
+    try {
+      await getCsrfCookie();
+      const payload = {
+        course_title: title,
+        category_id: null,
+        price: 0
+      };
+      const res = await api.post('/instructor/create-course', payload);
+      if (res.data?.id) {
+        router.push(`/instructor/courses/${res.data.id}/curriculum`);
+      }
+    } catch (err) {
+      console.error('Course creation failed:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleModalSubmit = async (data: { course_title: string; category_id: string; price: string }) => {
+    setIsCreating(true);
+    try {
+      await getCsrfCookie();
+      const payload = {
+        course_title: data.course_title,
+        category_id: data.category_id ? parseInt(data.category_id) : null,
+        price: data.price ? parseFloat(data.price) : 0
+      };
+      const res = await api.post('/instructor/create-course', payload);
+      if (res.data?.id) {
+        router.push(`/instructor/courses/${res.data.id}/curriculum`);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCreating(false);
+      setShowCreateModal(false);
+    }
+  };
+
   return (
+    <>
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
       {/* 1. Center Column: Operations Hub */}
       <div className="flex-1 min-w-0 space-y-10">
@@ -57,11 +99,19 @@ export default function InstructorDashboard() {
               <Plus className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600 transition-colors" size={20} />
               <input 
                 placeholder="Initialize new curriculum..." 
-                className="w-full bg-white border border-gray-100 rounded-[2rem] pl-16 pr-6 py-4 text-sm font-medium focus:border-blue-200 outline-none transition-all shadow-sm shadow-gray-50"
+                value={newCourseTitle}
+                onChange={(e) => setNewCourseTitle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (newCourseTitle ? handleCreateCourse(e as any) : setShowCreateModal(true))}
+                disabled={isCreating}
+                className="w-full bg-white border border-gray-100 rounded-[2rem] pl-16 pr-6 py-5 text-sm font-bold focus:border-blue-200 outline-none transition-all shadow-xl shadow-gray-100/50"
               />
            </div>
-           <button className="bg-blue-600 text-white p-4 rounded-[1.2rem] shadow-lg shadow-blue-100 hover:scale-105 transition-all active:scale-95">
-              <Plus size={20} />
+           <button 
+             onClick={() => newCourseTitle ? handleCreateCourse(null as any) : setShowCreateModal(true)}
+             disabled={isCreating}
+             className="bg-blue-600 text-white w-14 h-14 flex items-center justify-center rounded-[1.2rem] shadow-xl shadow-blue-200 hover:scale-105 hover:bg-black transition-all active:scale-95 disabled:opacity-50 shrink-0"
+           >
+              {isCreating ? <Clock className="animate-spin" size={20} /> : <Plus size={24} strokeWidth={3} />}
            </button>
         </div>
 
@@ -70,31 +120,36 @@ export default function InstructorDashboard() {
            <div className="absolute top-0 right-0 p-32 bg-blue-500/10 blur-[80px] rounded-full -mr-20 -mt-20"></div>
            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="max-w-md">
-                 <p className="text-[9px] font-black  tracking-[0.3em] mb-3 text-blue-400">Command Center</p>
-                 <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-6">
-                    Manage your curriculum throughput
+                 <p className="text-[9px] font-black  tracking-[0.3em] mb-3 text-blue-400 uppercase">Strategic Operations</p>
+                 <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-8">
+                    Manage your <br /><span className="italic text-blue-400">Curriculum throughput</span>
                  </h1>
                  <div className="flex gap-4">
-                    <button className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white text-[10px] font-black rounded-full hover:bg-blue-700 transition-all  tracking-widest">
-                       Quick publish <Zap size={14} fill="white" />
+                    <button 
+                      onClick={() => setShowCreateModal(true)}
+                      className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white text-[10px] font-black rounded-full hover:bg-black transition-all  tracking-widest shadow-lg shadow-blue-900/50"
+                    >
+                       QUICK PUBLISH <Zap size={14} fill="white" />
                     </button>
-                    <button className="flex items-center gap-3 px-6 py-3 bg-white/10 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all  tracking-widest backdrop-blur-md border border-white/5">
-                       View analytics
-                    </button>
+                    <Link href="/instructor/ai-generator?mode=quiz">
+                      <button className="flex items-center gap-3 px-8 py-4 bg-white/10 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all  tracking-widest backdrop-blur-md border border-white/5">
+                         GENERATE QUIZ <Sparkles size={14} className="text-blue-400" />
+                      </button>
+                    </Link>
                  </div>
               </div>
               
               <div className="flex gap-10">
                  <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-1">Impact</p>
-                    <p className="text-3xl font-black font-sans">{stats?.total_students || '0'}</p>
-                    <p className="text-[9px] text-emerald-400 font-bold mt-1">Total assets</p>
+                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-2">NETWORK IMPACT</p>
+                    <p className="text-4xl font-black font-sans">{stats?.total_students || '0'}</p>
+                    <p className="text-[9px] text-emerald-400 font-bold mt-2">Active Students</p>
                  </div>
-                 <div className="w-[1px] h-12 bg-white/10 mt-2" />
+                 <div className="w-[1px] h-16 bg-white/10 mt-2" />
                  <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-1">Revenue</p>
-                    <p className="text-3xl font-black font-sans">{stats?.total_earnings || '0'}</p>
-                    <p className="text-[9px] text-blue-400 font-bold mt-1">KES total</p>
+                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-2">REVENUE YIELD</p>
+                    <p className="text-4xl font-black font-sans">{stats?.total_earnings || '0'}</p>
+                    <p className="text-[9px] text-blue-400 font-bold mt-2">KES Total</p>
                  </div>
               </div>
            </div>
@@ -114,12 +169,17 @@ export default function InstructorDashboard() {
               <Link href="/instructor/courses" className="text-blue-600 text-[10px] font-black  tracking-widest hover:underline">View fleet</Link>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {courses.slice(0, 4).map((course) => (
-                <div key={course.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex gap-6 hover:shadow-xl hover:shadow-gray-100/50 transition-all group">
-                   <div className="w-24 h-24 rounded-3xl bg-gray-100 relative overflow-hidden shrink-0 shadow-inner">
+                <div 
+                  key={course.id} 
+                  onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
+                  className="bg-white border border-gray-100 rounded-[2.5rem] p-6 lg:p-8 flex gap-5 hover:shadow-xl hover:shadow-gray-100/50 transition-all group cursor-pointer"
+                >
+                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gray-100 relative overflow-hidden shrink-0 shadow-inner">
                       <Image src={course.image || '/course-placeholder.jpg'} alt={course.course_title} fill className="object-cover" />
                    </div>
+
                    <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                       <div>
                          <div className="flex items-center justify-between mb-2">
@@ -134,7 +194,7 @@ export default function InstructorDashboard() {
                            {course.course_title}
                          </h4>
                       </div>
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center justify-between gap-4 mt-4">
                          <div className="flex items-center gap-2">
                             <Users size={14} className="text-gray-300" />
                             <span className="text-[10px] font-black text-gray-400 font-sans">142 students</span>
@@ -148,8 +208,8 @@ export default function InstructorDashboard() {
         </section>
       </div>
 
-      {/* 2. Right Column: System Performance */}
-      <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0">
+      {/* 2. Right Column: System Performance (Sticky) */}
+      <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0 lg:sticky lg:top-10 h-fit">
           
           {/* Executive Profile */}
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
@@ -215,6 +275,13 @@ export default function InstructorDashboard() {
           </div>
       </aside>
     </div>
+    <CourseCreateModal 
+      isOpen={showCreateModal} 
+      onClose={() => setShowCreateModal(false)}
+      onSubmit={handleModalSubmit}
+      isCreating={isCreating}
+    />
+    </>
   );
 }
 

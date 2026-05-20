@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, getCsrfCookie } from '@/lib/api';
 import { Section } from '@/types/curriculum';
 import CurriculumEditor from '@/components/instructor/CurriculumEditor';
 import { Layout, BookOpen, Settings, ChevronLeft, Sparkles } from 'lucide-react';
@@ -16,7 +16,10 @@ const InstructorCurriculumPage = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await api.get(`/courses/${id}`);
+        const [response] = await Promise.all([
+          api.get(`/courses/${id}`),
+          getCsrfCookie()
+        ]);
         setCourse(response.data);
       } catch (error) {
         console.error("Failed to fetch course", error);
@@ -62,15 +65,18 @@ const InstructorCurriculumPage = () => {
                        <Settings size={18} /> Settings
                     </button>
                  </Link>
-                 <button className="h-14 px-8 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl flex items-center gap-3">
-                    <Sparkles size={18} className="text-emerald-400" /> Preview Mode
-                 </button>
+                 <Link href={`/courses/${course.slug}/learn`}>
+                    <button className="h-14 px-8 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl flex items-center gap-3">
+                       <Sparkles size={18} className="text-emerald-400" /> Preview Mode
+                    </button>
+                 </Link>
               </div>
+
            </div>
         </header>
 
         <main className="pb-20">
-            <div className="bg-white border border-gray-100 rounded-[3rem] p-12 shadow-sm">
+            <div className="bg-white border border-gray-100 rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-12 shadow-sm">
                <CurriculumEditor courseId={Number(id)} initialSections={course.sections} />
             </div>
         </main>

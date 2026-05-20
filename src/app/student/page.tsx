@@ -138,7 +138,7 @@ export default function StudentDashboardPreview() {
               </div>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
               {courses.slice(0, 3).map((course) => (
                 <Link key={course.id} href={`/student/learn/${course.slug}`}>
                   <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all cursor-pointer h-full flex flex-col">
@@ -222,8 +222,8 @@ export default function StudentDashboardPreview() {
         </section>
       </div>
 
-      {/* 2. Right Sidebar (Template Third Column) */}
-      <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0">
+      {/* 2. Right Sidebar (Sticky) */}
+      <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0 lg:sticky lg:top-10 h-fit">
          
          {/* Profile Card */}
          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden">

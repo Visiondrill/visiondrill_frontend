@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { api } from '@/lib/api';
 import { Section, Lesson } from '@/types/curriculum';
 import VideoUploader from '@/components/instructor/VideoUploader';
+import TextEditor from '@/components/instructor/TextEditor';
 import QuizEditor from '@/components/instructor/QuizEditor';
 import { 
   GripVertical, 
@@ -83,9 +84,9 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <h3 className="text-2xl font-black text-gray-900 tracking-tight ">Course Curriculum</h3>
-        <Button onClick={handleAddSection} className="flex items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight ">Course Curriculum</h3>
+        <Button onClick={handleAddSection} className="flex items-center w-full sm:w-auto justify-center">
           <Plus size={18} className="mr-2" /> Add Section
         </Button>
       </div>
@@ -192,7 +193,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
       };
       const response = await api.post(`/instructor/courses/${courseId}/sections/${section.id}/lessons`, { 
         title: (typeIcons as any)[type] || "New Lesson", 
-        lesson_type: type 
+        lesson_type: type === 'quiz' ? 'quiz' : 'lecture' 
       });
       setLessons([...lessons, response.data]);
     } catch (err) {
@@ -231,11 +232,17 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
             </div>
           ) : (
             <div className="flex items-center group">
-              <span className="font-black text-gray-900 tracking-tight  mr-3">{title}</span>
+              <span 
+                className="font-black text-gray-900 tracking-tight mr-3 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={() => setIsEditing(true)}
+              >
+                {title}
+              </span>
               <button onPointerDown={() => setIsEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-blue-600">
                 <Edit3 size={14} />
               </button>
             </div>
+
           )}
         </div>
         
@@ -322,15 +329,12 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(lesson.title);
   const [showUploader, setShowUploader] = useState(false);
+  const [showTextEditor, setShowTextEditor] = useState(false);
   const [showQuizEditor, setShowQuizEditor] = useState(false);
 
   const getTypeIcon = () => {
-    switch (lesson.lesson_type) {
-      case 'video': return <Video size={16} className="text-blue-500" />;
-      case 'text': return <FileText size={16} className="text-purple-500" />;
-      case 'quiz': return <HelpCircle size={16} className="text-orange-500" />;
-      default: return <FileText size={16} className="text-gray-400" />;
-    }
+    if (lesson.lesson_type === 'quiz') return <HelpCircle size={16} className="text-orange-500" />;
+    return <Video size={16} className="text-blue-500" />;
   };
 
   const handleSaveTitle = async () => {
@@ -365,9 +369,16 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
             <GripVertical className="text-gray-200" size={16} />
           </div>
           
-          <div className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
+          <div 
+            className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 cursor-pointer transition-colors"
+            onClick={() => {
+              if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
+              else setShowTextEditor(!showTextEditor);
+            }}
+          >
             {getTypeIcon()}
           </div>
+
           
           {isEditing ? (
              <div className="flex items-center space-x-2">
@@ -386,31 +397,51 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
                 <button onPointerDown={(e) => { e.preventDefault(); setIsEditing(false); }} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
              </div>
           ) : (
-             <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 transition-colors cursor-pointer" onDoubleClick={() => setIsEditing(true)}>{title}</span>
-               {lesson.lesson_type === 'quiz' && (
+              <div className="flex items-center gap-2">
+                 <span 
+                   className="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors cursor-pointer" 
+                   onClick={() => {
+                     if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
+                     else setShowTextEditor(!showTextEditor);
+                   }}
+                 >
+                   {title}
+                 </span>
+                {lesson.lesson_type === 'quiz' && (
                   <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-2 py-0.5 rounded  tracking-widest">Quiz Attached</span>
-               )}
-             </div>
+                )}
+              </div>
           )}
         </div>
         
         {!isEditing && (
           <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-             <button
-              onPointerDown={() => setShowQuizEditor(true)}
-              className="p-1.5 text-orange-400 hover:text-orange-600 transition-colors"
-              title="Manage Quiz Questions"
-            >
-              <HelpCircle size={16} />
-            </button>
-            <button
-              onPointerDown={() => setShowUploader(v => !v)}
-              className={`p-1.5 transition-colors ${showUploader ? 'text-blue-600 bg-blue-50 rounded-lg' : 'text-gray-400 hover:text-blue-600'}`}
-              title="Upload Video & Transcribe"
-            >
-              <Video size={16} />
-            </button>
+            {lesson.lesson_type === 'quiz' ? (
+              <button
+                onPointerDown={() => setShowQuizEditor(true)}
+                className="p-1.5 text-orange-400 hover:text-orange-600 transition-colors"
+                title="Manage Quiz Questions"
+              >
+                <HelpCircle size={16} />
+              </button>
+            ) : (
+              <>
+                <button
+                  onPointerDown={() => setShowTextEditor(v => !v)}
+                  className={`p-1.5 transition-colors ${showTextEditor ? 'text-purple-600 bg-purple-50 rounded-lg' : 'text-gray-400 hover:text-purple-600'}`}
+                  title="Edit Text Content"
+                >
+                  <FileText size={16} />
+                </button>
+                <button
+                  onPointerDown={() => setShowUploader(v => !v)}
+                  className={`p-1.5 transition-colors ${showUploader ? 'text-blue-600 bg-blue-50 rounded-lg' : 'text-gray-400 hover:text-blue-600'}`}
+                  title="Upload Video & Transcribe"
+                >
+                  <Video size={16} />
+                </button>
+              </>
+            )}
             <button onPointerDown={() => setIsEditing(true)} className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors" title="Edit Title">
               <Edit3 size={16} />
             </button>
@@ -421,13 +452,24 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
         )}
       </div>
 
-      {showUploader && (
+      {showUploader && lesson.lesson_type !== 'quiz' && (
         <div className="mx-2 mb-2">
           <VideoUploader
             lessonId={lesson.id}
             courseId={courseId}
             onTranscribed={() => setShowUploader(false)}
             onClose={() => setShowUploader(false)}
+          />
+        </div>
+      )}
+
+      {showTextEditor && lesson.lesson_type !== 'quiz' && (
+        <div className="mx-2 mb-2">
+          <TextEditor
+            lessonId={lesson.id}
+            courseId={courseId}
+            onClose={() => setShowTextEditor(false)}
+            onSaved={() => setShowTextEditor(false)}
           />
         </div>
       )}
