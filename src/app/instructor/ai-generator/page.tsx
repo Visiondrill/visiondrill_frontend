@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { api } from '@/lib/api';
 import { 
   Brain,
@@ -26,7 +26,16 @@ interface GeneratedSection {
   lessons: string[];
 }
 
-export default function AICourseGenerator() {
+// Wrapped in Suspense so useSearchParams() does not break `next build`.
+export default function AICourseGeneratorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm font-bold text-gray-400">Loading…</div>}>
+      <AICourseGenerator />
+    </Suspense>
+  );
+}
+
+function AICourseGenerator() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMode = searchParams.get('mode') as 'curriculum' | 'quiz' || 'curriculum';

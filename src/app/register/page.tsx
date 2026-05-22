@@ -1,13 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api, getCsrfCookie } from '@/lib/api';
 import { Mail, Lock, User, ArrowLeft, CheckCircle2, BookOpen, Briefcase } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 
+// Next.js requires components that call useSearchParams to be inside a
+// Suspense boundary so the build can pre-render the page shell without
+// the URL params. Without this wrapper, `next build` fails with a
+// "missing-suspense-with-csr-bailout" prerender error.
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm font-bold text-gray-400">Loading…</div>}>
+      <RegisterPageContent />
+    </Suspense>
+  );
+}
+
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const roleType = searchParams.get('type') || 'student';
   const isInstructor = roleType === 'instructor';

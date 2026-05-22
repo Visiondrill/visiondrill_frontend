@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -11,7 +11,16 @@ import { Loader2, Play, ChevronLeft, ChevronRight, Menu, Brain, Volume2, Maximiz
 
 import Link from 'next/link';
 
+// Wrapped in Suspense so useSearchParams() does not break `next build`.
 export default function LearnPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm font-bold text-gray-400">Loading…</div>}>
+      <LearnPageContent />
+    </Suspense>
+  );
+}
+
+function LearnPageContent() {
   const { slug } = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
