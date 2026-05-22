@@ -31,16 +31,23 @@ export default function AiAssistant({ lessonId, videoUrl, lessonTitle }: { lesso
     setIsTyping(true);
 
     try {
-      // We use the SSE endpoint
+      // We use the SSE endpoint. Auth is via Laravel Sanctum cookies, not a bearer token,
+      // so we forward the session/XSRF cookies via `credentials: 'include'` and attach the
+      // X-XSRF-TOKEN header read from the cookie (same flow as the api Axios instance).
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const xsrfCookie = typeof document !== 'undefined'
+        ? (document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN=')) || '').split('=')[1]
+        : '';
       const response = await fetch(`${baseUrl}/engine/api/stream/sse`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(xsrfCookie ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfCookie) } : {}),
         },
-        body: json_encode({
+        body: JSON.stringify({
           message: userMsg,
           context: `The student is currently watching the lesson: "${lessonTitle}".`,
           model: 'deepseek',
@@ -99,10 +106,6 @@ export default function AiAssistant({ lessonId, videoUrl, lessonTitle }: { lesso
       setIsTyping(false);
     }
   };
-
-  function json_encode(obj: any) {
-    return JSON.stringify(obj);
-  }
 
   if (isMinimized) {
      return (
