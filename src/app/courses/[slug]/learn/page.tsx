@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { Section, Lesson, Course } from '@/types/curriculum';
 import LearnSidebar from '@/components/LearnSidebar';
 import AIAssistantSidebar from '@/components/AIAssistantSidebar';
@@ -246,7 +247,7 @@ export default function LearnPage() {
 
                    {/* Main Body Text */}
                    <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-700 min-h-[200px]" 
-                      dangerouslySetInnerHTML={{ __html: activeLesson?.content?.body || 'No text content provided for this lesson.' }} 
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeLesson?.content?.body) || 'No text content provided for this lesson.' }} 
                    />
 
                    {/* Attached Documents */}

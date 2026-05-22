@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { sanitizeHtml } from '@/lib/sanitize';
 import Button from '@/components/Button';
 import { 
   User, 
@@ -218,7 +219,7 @@ const CourseDetailPage = () => {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-white p-12 rounded-[3.5rem] border border-gray-100 shadow-sm mb-12">
                    <h3 className="text-3xl font-black text-gray-900  tracking-tighter mb-10 italic">Core Competencies</h3>
-                   <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: course.description }}></div>
+                   <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description) }}></div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -289,7 +290,7 @@ const CourseDetailPage = () => {
                   <div className="pt-4">
                     <h4 className="text-4xl font-black text-gray-900 mb-2  tracking-tighter italic">{course.author.fullname}</h4>
                     <p className="text-blue-600 font-black mb-6 text-[10px]  tracking-[0.3em]">{course.author.short_description}</p>
-                    <div className="prose prose-blue text-gray-500 font-medium leading-relaxed italic" dangerouslySetInnerHTML={{ __html: course.author.long_description }}></div>
+                    <div className="prose prose-blue text-gray-500 font-medium leading-relaxed italic" dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.author.long_description) }}></div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-12 pt-12 border-t border-gray-50">
