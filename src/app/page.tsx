@@ -73,17 +73,26 @@ export default function Home() {
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+
+    // Only ask the API who is logged in when the browser has a session-ish
+    // cookie. Calling /me on every anonymous landing view produces a noisy
+    // 401 in the network panel and wastes a round-trip.
+    const hasSessionHint = typeof document !== 'undefined'
+      && (document.cookie.includes('laravel_session=') || document.cookie.includes('XSRF-TOKEN='));
+
     (async () => {
       try {
-        const [courseRes, userRes] = await Promise.allSettled([
-          api.get('/courses/popular'),
-          api.get('/me')
-        ]);
-        if (courseRes.status === 'fulfilled' && courseRes.value.data?.length > 0) {
-          setCourses(courseRes.value.data);
+        const requests: Array<Promise<unknown>> = [api.get('/courses/popular')];
+        if (hasSessionHint) requests.push(api.get('/me'));
+
+        const results = await Promise.allSettled(requests);
+        const courseRes = results[0] as PromiseSettledResult<{ data: unknown[] }>;
+        const userRes = results[1] as PromiseSettledResult<{ data: unknown }> | undefined;
+
+        if (courseRes.status === 'fulfilled' && Array.isArray(courseRes.value.data) && courseRes.value.data.length > 0) {
+          setCourses(courseRes.value.data as typeof courses);
         }
-        
-        if (userRes.status === 'fulfilled') {
+        if (userRes && userRes.status === 'fulfilled') {
           setUser(userRes.value.data);
         } else {
           setUser(null);
