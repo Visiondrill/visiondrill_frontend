@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   TrendingUp, 
   Activity, 
   Award, 
@@ -74,11 +75,11 @@ export default function StudentAnalyticsPage() {
             bg="bg-amber-50"
             desc="Cumulative time across all modules."
          />
-         <MetricCard 
-            label="Average score" 
-            value="84.2%" 
-            icon={Target} 
-            color="text-blue-600" 
+         <MetricCard
+            label="Average score"
+            value={typeof stats?.average_score === 'number' ? `${stats.average_score.toFixed(1)}%` : '—'}
+            icon={Target}
+            color="text-blue-600"
             bg="bg-blue-50"
             desc="Weighted avg from quiz evaluations."
          />

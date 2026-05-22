@@ -5,14 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { sanitizeHtml } from '@/lib/sanitize';
 import Button from '@/components/Button';
-import { 
-  User, 
-  Clock, 
-  Eye, 
-  CheckCircle, 
-  ChevronDown, 
-  Play, 
-  FileText, 
+import {
+  User,
+  Clock,
+  Eye,
+  CheckCircle,
+  ChevronDown,
+  Play,
+  PlayCircle,
+  FileText,
   HelpCircle,
   Users,
   Star,
