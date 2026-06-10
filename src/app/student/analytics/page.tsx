@@ -24,10 +24,19 @@ export default function StudentAnalyticsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, coursesRes] = await Promise.all([
+        const [statsRes, coursesRes, progressRes] = await Promise.all([
           api.get('/student/dashboard-stats'),
-          api.get('/student/courses')
+          api.get('/student/courses'),
+          api.get('/student/analytics/progress')
         ]);
+        if (progressRes.data) {
+          // Merge detailed progress into courses if available
+          const progressMap = new Map(progressRes.data.map((p: any) => [p.course_id, p]));
+          coursesRes.data = coursesRes.data.map((c: any) => ({
+            ...c,
+            detailed_progress: progressMap.get(c.id) || null
+          }));
+        }
         setStats(statsRes.data);
         setCourses(coursesRes.data);
       } catch (err) {

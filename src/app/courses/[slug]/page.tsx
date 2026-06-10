@@ -63,6 +63,8 @@ const CourseDetailPage = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [expandedSections, setExpandedSections] = useState<number[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [ratingStats, setRatingStats] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -73,6 +75,14 @@ const CourseDetailPage = () => {
         if (response.data.sections.length > 0) {
           setExpandedSections([response.data.sections[0].id]);
         }
+        // Fetch reviews and rating stats in parallel
+        const courseId = response.data.id;
+        const [reviewsRes, ratingRes] = await Promise.all([
+          api.get(`/courses/${courseId}/reviews`).catch(() => ({ data: [] })),
+          api.get(`/courses/${courseId}/rating-stat`).catch(() => ({ data: null }))
+        ]);
+        setReviews(reviewsRes.data || []);
+        setRatingStats(ratingRes.data);
       } catch (error) {
         console.error('Failed to fetch course details', error);
       } finally {

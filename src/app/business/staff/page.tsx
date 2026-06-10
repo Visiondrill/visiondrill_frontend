@@ -136,9 +136,17 @@ export default function StaffManagement() {
                  <div key={emp.id} className="p-6 bg-white border border-gray-50 rounded-[2rem] hover:border-purple-100 hover:shadow-xl hover:shadow-purple-50/20 transition-all group flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 font-black text-xl shadow-inner overflow-hidden">
-                             {emp.avatar ? <img src={emp.avatar} className="w-full h-full object-cover" /> : emp.name[0]}
-                          </div>
+                           <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 font-black text-xl shadow-inner overflow-hidden relative">
+                              <span className="absolute inset-0 flex items-center justify-center">{emp.name[0]}</span>
+                              {emp.avatar && (
+                                 <img 
+                                    src={emp.avatar} 
+                                    className="absolute inset-0 w-full h-full object-cover" 
+                                    alt="" 
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                 />
+                              )}
+                           </div>
                           <div>
                              <h4 className="font-black text-gray-900 group-hover:text-purple-600 transition-colors  tracking-tight">{emp.name}</h4>
                              <div className="flex items-center gap-2 mt-1 text-xs font-medium text-gray-400">

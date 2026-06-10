@@ -43,7 +43,7 @@ export default function CreateCommandQuiz() {
     if (!heading) return alert('Enter a quiz title');
     setIsLoading(true);
     try {
-      const res = await api.post('/instructor/quizzes/command', { heading, questions });
+      const res = await api.post('/quiz-info/create', { heading, questions });
       setCreatedQuiz(res.data.quiz);
       setShowInviteModal(true);
     } catch (err) {
@@ -58,7 +58,7 @@ export default function CreateCommandQuiz() {
     if (!inviteEmail) return;
     setIsInviting(true);
     try {
-      const res = await api.post(`/instructor/quizzes/${createdQuiz.id}/invite`, { email: inviteEmail });
+      const res = await api.post(`/instructor/quiz-info/${createdQuiz.id}/email-quiz`, { email: inviteEmail });
       setInvitations([...invitations, res.data.invitation]);
       setInviteEmail('');
     } catch (err) {

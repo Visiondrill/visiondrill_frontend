@@ -37,8 +37,7 @@ export default function InstructorMessagingPage() {
 
   const fetchThreads = async () => {
     try {
-      // Assuming instructor endpoints follow the pattern
-      const res = await api.get('/instructor/messages/threads');
+      const res = await api.get('/student/messages/threads');
       const data = Array.isArray(res.data) ? res.data : [];
       setThreads(data);
       if (data.length > 0 && !activeThread) {
@@ -57,7 +56,7 @@ export default function InstructorMessagingPage() {
     setIsMobileThreadView(false);
     setIsLoadingMessages(true);
     try {
-      const res = await api.get(`/instructor/messages/threads/${thread.id}`);
+      const res = await api.get(`/student/messages/threads/${thread.id}`);
       setMessages(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       toast.error('Could not retrieve conversation history.');
@@ -74,7 +73,7 @@ export default function InstructorMessagingPage() {
     setReply('');
 
     try {
-      const res = await api.post(`/instructor/messages/threads/${activeThread.id}/reply`, {
+      const res = await api.post(`/student/messages/threads/${activeThread.id}/reply`, {
         body: content
       });
       setMessages([...messages, res.data]);

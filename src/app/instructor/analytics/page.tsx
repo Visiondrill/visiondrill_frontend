@@ -15,12 +15,12 @@ export default function InstructorAnalytics() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, analyticsRes] = await Promise.all([
+        const [statsRes, aiRes] = await Promise.all([
           api.get('/instructor/dashboard-stats'),
-          api.get('/instructor/analytics')
+          api.get('/instructor/ai-interactions')
         ]);
         setStats(statsRes.data);
-        setAnalytics(analyticsRes.data);
+        setAnalytics(aiRes.data);
       } catch (err) {
         console.error(err);
       } finally {

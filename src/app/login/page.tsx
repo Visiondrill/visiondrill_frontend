@@ -2,9 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { api, getCsrfCookie } from '@/lib/api';
-import Button from '@/components/Button';
+import { api, getCsrfCookie, getErrorMessage } from '@/lib/api';
 import { Mail, Lock, ArrowLeft, Zap } from 'lucide-react';
 
 export default function LoginPage() {
@@ -12,7 +10,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +24,13 @@ export default function LoginPage() {
         const user = response.data.user;
         const roleNames = (user.roles || []).map((r: any) => r.name);
 
-        if (roleNames.includes('admin')) router.push('/admin');
-        else if (roleNames.includes('business')) router.push('/business');
-        else if (roleNames.includes('author')) router.push('/instructor');
-        else router.push('/student');
+        if (roleNames.includes('admin')) window.location.href = '/admin';
+        else if (roleNames.includes('business')) window.location.href = '/business';
+        else if (roleNames.includes('author')) window.location.href = '/instructor';
+        else window.location.href = '/student';
       }
     } catch (err: any) {
-      const errorData = err.response?.data;
-      setError(errorData?.message || 'Invalid credentials. Please try again.');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

@@ -180,9 +180,17 @@ export default function InstructorStudents() {
                           <div key={student.id} className="p-6 bg-white border border-gray-100 rounded-2xl hover:shadow-xl transition-all flex flex-col gap-6 group relative">
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                   <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-blue-600 font-black text-xl shadow-inner overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-                                      {student.avatar ? <img src={student.avatar} className="w-full h-full object-cover" alt="" /> : student.name[0]}
-                                   </div>
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-blue-600 font-black text-xl shadow-inner overflow-hidden shrink-0 group-hover:scale-105 transition-transform relative">
+                                       <span className="absolute inset-0 flex items-center justify-center">{student.name[0]}</span>
+                                       {student.avatar && (
+                                          <img 
+                                             src={student.avatar} 
+                                             className="absolute inset-0 w-full h-full object-cover" 
+                                             alt="" 
+                                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                          />
+                                       )}
+                                    </div>
                                    <div>
                                       <h5 className="text-sm font-black text-gray-900 leading-tight mb-1">{student.name}</h5>
                                       <div className="flex items-center gap-2">

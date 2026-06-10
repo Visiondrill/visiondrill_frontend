@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { useParams } from 'next/navigation';
 import { CheckCircle2, Loader2, Sparkles, AlertTriangle, ShieldCheck, Clock, Send } from 'lucide-react';
 import Button from '@/components/Button';
@@ -18,7 +18,7 @@ export default function TakePublicQuiz() {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await api.get(`/public/quiz/${token}`);
+        const res = await api.get(`/user/quiz/${token}/questions`);
         setData(res.data);
       } catch (err) {
         setError('Invalid or expired invitation token.');
@@ -47,10 +47,10 @@ export default function TakePublicQuiz() {
       });
       const score = (correct / data.quiz.quiz_questions.length) * 100;
 
-      await api.post(`/public/quiz/${token}/submit`, { answers, score });
+      await api.post(`/user/quiz/${token}/save-answers`, { answers, score });
       setSubmitted(true);
     } catch (err) {
-      alert('Submission failed');
+      alert(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

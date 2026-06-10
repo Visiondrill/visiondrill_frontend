@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { User, Lock, Mail, Phone, Camera, Save, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -50,7 +50,7 @@ export default function StudentSettingsPage() {
       await api.patch('/profile/update', profile);
       toast.success('Profile updated successfully!');
     } catch (err) {
-      toast.error('Failed to update profile.');
+      toast.error(getErrorMessage(err));
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -70,7 +70,7 @@ export default function StudentSettingsPage() {
       toast.success('Password securely updated.');
       setPasswords({ current_password: '', new_password: '', new_password_confirmation: '' });
     } catch (err) {
-      toast.error('Security update failed. Check current password.');
+      toast.error(getErrorMessage(err));
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -96,8 +96,12 @@ export default function StudentSettingsPage() {
         <div className="lg:col-span-1 space-y-6">
            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center">
               <div className="relative group cursor-pointer mb-6">
-                 <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-blue-100 to-indigo-50 flex items-center justify-center text-blue-600 shadow-inner overflow-hidden">
-                    <User size={48} className="text-blue-500/50" />
+                 <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-blue-100 overflow-hidden relative">
+                    {profile.first_name ? (
+                       profile.first_name[0]
+                    ) : (
+                       <User size={48} className="text-white/50" />
+                    )}
                  </div>
                  <div className="absolute inset-0 bg-blue-600/90 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
                     <Camera size={24} className="mb-2" />

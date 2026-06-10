@@ -27,6 +27,39 @@ export default function AIAssistantSidebar({ lessonId, courseId }: AIAssistantSi
     "How does this relate to X?"
   ];
 
+  const handleSummarize = async () => {
+    if (isTyping) return;
+    setIsTyping(true);
+    try {
+      const response = await api.post('/engine/api/stream/sse/summarize', {
+        lesson_id: lessonId,
+        course_id: courseId
+      });
+      setMessages(prev => [...prev, { role: 'assistant', content: response.data.summary || response.data.reply || "Summary: Core concepts extracted." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Summarization engine offline." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleVideoQA = async () => {
+    if (isTyping) return;
+    setIsTyping(true);
+    try {
+      const response = await api.post('/engine/api/stream/video', {
+        lesson_id: lessonId,
+        course_id: courseId,
+        question: "What are the key points in this video?"
+      });
+      setMessages(prev => [...prev, { role: 'assistant', content: response.data.reply || "Video analysis complete." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Video analysis engine offline." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   useEffect(() => {
     setMessages([{ 
       role: 'assistant', 

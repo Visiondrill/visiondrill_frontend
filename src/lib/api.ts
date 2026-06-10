@@ -66,11 +66,12 @@ api.interceptors.response.use(
       }
     }
 
-    // Redirect on 401 from protected routes
+    // Redirect on 401 from protected routes — but NOT for /me (auth-check) calls
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       const path = window.location.pathname;
+      const isMeEndpoint = originalRequest.url?.includes('/me');
       const protectedRoutes = ['/student', '/instructor', '/business', '/admin'];
-      if (protectedRoutes.some(r => path.startsWith(r)) && !path.includes('/login')) {
+      if (!isMeEndpoint && protectedRoutes.some(r => path.startsWith(r)) && !path.includes('/login')) {
         window.location.href = '/login';
       }
     }
@@ -78,3 +79,20 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Extracts a human-readable error message from a Laravel API error response.
+ * Handles both the top-level 'message' and the field-specific 'errors' object.
+ */
+export const getErrorMessage = (err: any): string => {
+  const errorData = err.response?.data;
+  if (!errorData) return 'Connection error or technical failure.';
+
+  // If Laravel returned a validation 'errors' object, prioritize those specific field messages
+  if (errorData.errors) {
+    const messages = Object.values(errorData.errors).flat() as string[];
+    if (messages.length > 0) return messages.join(' ');
+  }
+
+  return errorData.message || 'Action failed.';
+};

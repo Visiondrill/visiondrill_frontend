@@ -14,7 +14,22 @@ export default function CertificatesPage() {
     const fetchCertificates = async () => {
       try {
         const res = await api.get('/student/certificates');
-        setCertificates(res.data || []);
+        const certs = res.data || [];
+        // Also fetch issue status for each certificate's course
+        const enriched = await Promise.all(
+          certs.map(async (cert: any) => {
+            if (cert.course?.id) {
+              try {
+                const issueRes = await api.post(`/student/courses/${cert.course.id}/certificate`);
+                return { ...cert, issue_status: issueRes.data };
+              } catch {
+                return cert;
+              }
+            }
+            return cert;
+          })
+        );
+        setCertificates(enriched);
       } catch (err) {
         toast.error('Failed to load certificates.');
       } finally {

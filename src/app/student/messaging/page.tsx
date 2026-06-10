@@ -59,6 +59,8 @@ export default function MessagingPage() {
     try {
       const res = await api.get(`/student/messages/threads/${thread.id}`);
       setMessages(Array.isArray(res.data) ? res.data : []);
+      // Mark thread as read after opening
+      await api.post('/student/messages/threads/read', { thread_id: thread.id }).catch(() => {});
     } catch (err) {
       toast.error('Could not retrieve node history.');
     } finally {

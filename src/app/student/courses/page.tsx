@@ -12,11 +12,26 @@ export default function MyCoursesPage() {
   const [activeTab, setActiveTab] = useState('enrolled');
 
   useEffect(() => {
-    api.get('/student/courses')
-      .then(res => {
-         // Assuming backend injects progress_percentage in /student/courses mapping
-         setCourses(res.data);
-      })
+    Promise.all([
+      api.get('/student/courses'),
+      // Also fetch the continue-learning endpoint for each course
+      api.get('/student/courses').then(res => 
+        Promise.all(
+          (res.data || []).map((c: any) => 
+            api.get(`/student/courses/${c.slug}/continue`).catch(() => ({ data: null }))
+          )
+        )
+      )
+    ]).then(([mainRes, continueData]) => {
+      const continueMap = new Map();
+      (continueData || []).forEach((item: any, i: number) => {
+        if (item?.data) continueMap.set(mainRes.data[i]?.id, item.data);
+      });
+      setCourses((mainRes.data || []).map((c: any) => ({
+        ...c,
+        continue_node: continueMap.get(c.id) || null
+      })));
+    })
       .catch(err => console.error(err))
       .finally(() => setIsLoading(false));
   }, []);

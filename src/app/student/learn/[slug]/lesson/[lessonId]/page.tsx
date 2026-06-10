@@ -16,22 +16,22 @@ import ReactMarkdown from 'react-markdown';
 import toast from 'react-hot-toast';
 
 export default function StudentLessonPage() {
-  const { lessonId } = useParams();
+  const { slug, lessonId } = useParams();
   const [lesson, setLesson] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('content');
 
   useEffect(() => {
     setIsLoading(true);
-    api.get(`/lessons/${lessonId}`)
+    api.get(`/courses/${slug}/lesson/${lessonId}`)
       .then(res => setLesson(res.data))
       .catch(err => console.error(err))
       .finally(() => setIsLoading(false));
-  }, [lessonId]);
+  }, [lessonId, slug]);
 
   const handleMarkComplete = async () => {
     try {
-      await api.post(`/lessons/${lessonId}/complete`);
+      await api.post(`/student/lessons/${lessonId}/complete`);
       toast.success('Lesson marked as complete!');
       setLesson({ ...lesson, completed: true });
     } catch {

@@ -23,20 +23,23 @@ import Image from 'next/image';
 export default function StudentDashboardPreview() {
   const [user, setUser] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
+  const [popularCourses, setPopularCourses] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [userRes, coursesRes, statsRes] = await Promise.all([
+        const [userRes, coursesRes, statsRes, popularRes] = await Promise.all([
           api.get('/me'),
           api.get('/student/courses'),
-          api.get('/student/dashboard-stats')
+          api.get('/student/dashboard-stats'),
+          api.get('/courses/popular')
         ]);
         setUser(userRes.data);
         setCourses(coursesRes.data);
         setStats(statsRes.data);
+        setPopularCourses(popularRes.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -46,12 +49,7 @@ export default function StudentDashboardPreview() {
     fetchData();
   }, []);
 
-  if (isLoading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="text-blue-600 animate-spin" size={32} />
-      <p className="text-sm font-bold text-gray-400">Rendering workspace...</p>
-    </div>
-  );
+  if (isLoading) return <StudentDashboardSkeleton />;
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -148,16 +146,21 @@ export default function StudentDashboardPreview() {
                            <Star size={14} />
                         </div>
                      </div>
-                     <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div className="p-6 flex-1 flex flex-col justify-between">
                         <div>
-                           <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg tracking-widest">Frontend</span>
+                           <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg tracking-widest uppercase">
+                             {(course.sections?.[0]?.title || 'CORE MODULE').split(' ')[0]}
+                           </span>
                            <h4 className="text-sm font-black text-gray-900 mt-4 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 underline-offset-4 group-hover:underline">
                              {course.course_title}
                            </h4>
                         </div>
                         <div>
                            <div className="h-1.5 w-full bg-gray-100 rounded-full mt-6 overflow-hidden">
-                              <div className="h-full bg-blue-600 w-[45%]" />
+                              <div 
+                                className="h-full bg-blue-600 transition-all duration-1000" 
+                                style={{ width: `${course.progress_percentage || 0}%` }} 
+                              />
                            </div>
                            <div className="mt-6 flex items-center justify-between">
                               <div className="flex items-center gap-3">
@@ -182,44 +185,51 @@ export default function StudentDashboardPreview() {
            </div>
         </section>
 
-        {/* Suggested Courses (Left-to-Right Scrolling) */}
-        <section>
-           <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-gray-900 tracking-tight">Suggested courses</h3>
-              <div className="flex gap-2">
-                 <button className="p-2 border border-gray-100 rounded-xl text-gray-300 hover:text-blue-600 transition-all"><ChevronLeft size={20} /></button>
-                 <button className="p-2 border border-blue-100 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all"><ChevronRight size={20} /></button>
+         {popularCourses.length > 0 && (
+           <section>
+              <div className="flex items-center justify-between mb-8">
+                 <h3 className="text-xl font-black text-gray-900 tracking-tight">Suggested courses</h3>
+                 <div className="flex gap-2">
+                    <button className="p-2 border border-gray-100 rounded-xl text-gray-300 hover:text-blue-600 transition-all"><ChevronLeft size={20} /></button>
+                    <button className="p-2 border border-blue-100 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all"><ChevronRight size={20} /></button>
+                 </div>
               </div>
-           </div>
-           
-           <div className="flex gap-8 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="min-w-[300px] md:min-w-[340px] bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all snap-start">
-                   <div className="aspect-video bg-gray-100 relative">
-                      <Image 
-                        src={`https://images.unsplash.com/photo-${1500000000000 + (i * 100000)}?q=80&w=800&auto=format&fit=crop`} 
-                        alt="Course preview" 
-                        fill 
-                        className="object-cover group-hover:scale-105 transition-all duration-500" 
-                      />
-                      <div className="absolute top-4 left-4 bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-lg  tracking-widest">Trending</div>
-                   </div>
-                   <div className="p-8 pb-10">
-                      <h4 className="text-lg font-black text-gray-900 leading-tight group-hover:text-blue-600 transition-colors mb-4 truncate">
-                        Advanced data structures and algorithm design node {i}
-                      </h4>
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white" />
-                            <span className="text-xs font-bold text-gray-400">Expert tutor</span>
-                         </div>
-                         <p className="text-lg font-black text-gray-900 font-sans text-sm leading-none">KES 4,500</p>
-                      </div>
-                   </div>
-                </div>
-              ))}
-           </div>
-        </section>
+              
+              <div className="flex gap-8 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory">
+                 {popularCourses.map((course) => (
+                   <Link key={course.id} href={`/courses/${course.slug}`}>
+                     <div className="min-w-[300px] md:min-w-[340px] bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all snap-start h-full flex flex-col">
+                        <div className="aspect-video bg-gray-100 relative shrink-0">
+                           <Image 
+                             src={course.image || `https://images.unsplash.com/photo-${1500000000000 + (course.id * 100000)}?q=80&w=800&auto=format&fit=crop`} 
+                             alt={course.course_title} 
+                             fill 
+                             className="object-cover group-hover:scale-105 transition-all duration-500" 
+                           />
+                           <div className="absolute top-4 left-4 bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-lg  tracking-widest uppercase">Popular</div>
+                        </div>
+                        <div className="p-8 pb-10 flex-1 flex flex-col justify-between">
+                           <h4 className="text-lg font-black text-gray-900 leading-tight group-hover:text-blue-600 transition-colors mb-4 line-clamp-2">
+                             {course.course_title}
+                           </h4>
+                           <div className="flex items-center justify-between mt-auto">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm">
+                                    {course.author?.first_name?.[0] || 'T'}
+                                 </div>
+                                 <span className="text-xs font-bold text-gray-400">{course.author?.first_name || 'Expert'}</span>
+                              </div>
+                              <p className="text-lg font-black text-gray-900 font-sans tracking-tight">
+                                {course.price > 0 ? `KES ${Number(course.price).toLocaleString()}` : 'FREE'}
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+                   </Link>
+                 ))}
+              </div>
+           </section>
+         )}
       </div>
 
       {/* 2. Right Sidebar (Sticky) */}
@@ -229,75 +239,90 @@ export default function StudentDashboardPreview() {
          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden">
             <MoreVertical className="absolute top-8 right-8 text-gray-300 cursor-pointer" size={18} />
             
-            <div className="relative mb-6">
-               <div className="w-32 h-32 rounded-full border-4 border-gray-50 p-2 transform -rotate-90">
-                  <svg className="w-full h-full">
-                     <circle cx="56" cy="56" r="50" fill="transparent" stroke="#2563eb" strokeWidth="8" strokeDasharray="314" strokeDashoffset="80" strokeLinecap="round" />
-                  </svg>
-               </div>
-               <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <div className="w-24 h-24 rounded-full bg-gray-100 relative overflow-hidden border-4 border-white shadow-xl">
-                     <Image src={user?.picture || '/default-user.jpg'} alt="Profile" fill className="object-cover" />
-                  </div>
-               </div>
-            </div>
+             <div className="relative mb-6">
+                <div className="w-32 h-32 rounded-full transform -rotate-90">
+                   <svg className="w-full h-full" viewBox="0 0 128 128">
+                      <circle 
+                        cx="64" 
+                        cy="64" 
+                        r="58" 
+                        fill="transparent" 
+                        stroke="#f3f4f6" 
+                        strokeWidth="8" 
+                      />
+                      <circle 
+                        cx="64" 
+                        cy="64" 
+                        r="58" 
+                        fill="transparent" 
+                        stroke="#2563eb" 
+                        strokeWidth="8" 
+                        strokeDasharray="364.4" 
+                        strokeDashoffset={364.4 * (1 - (stats?.weekly_lessons_completed || 0) / 10)} 
+                        strokeLinecap="round" 
+                        className="transition-all duration-1000 ease-out"
+                      />
+                   </svg>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden border-4 border-white shadow-xl flex items-center justify-center text-white text-3xl font-black uppercase">
+                      {user?.picture ? (
+                         <Image src={user.picture} alt="Profile" fill className="object-cover" />
+                      ) : (
+                         <span className="drop-shadow-md">{user?.first_name?.[0] || 'P'}</span>
+                      )}
+                   </div>
+                </div>
+             </div>
 
             <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none mb-4">Good morning {user?.first_name || 'Operator'}</h3>
-            <p className="text-xs font-bold text-gray-400 leading-relaxed max-w-[200px]">You have completed {stats?.weekly_lessons_completed || 0} lessons this week. Keep going!</p>
+            <Link href="/student/notifications" className="hover:opacity-70 transition-opacity">
+               <p className="text-xs font-bold text-gray-400 leading-relaxed max-w-[200px]">
+                 You have completed {stats?.weekly_lessons_completed || 0} lessons this week. Keep going!
+               </p>
+            </Link>
 
             <div className="flex gap-4 mt-10">
-               <div className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm">
+               <Link href="/student/notifications" className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm">
                   <Bell size={18} />
-               </div>
-               <div className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm">
+               </Link>
+               <Link href="/student/messaging" className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm">
                   <Mail size={18} />
-               </div>
-               <div className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm">
-                  <Mail size={18} />
-               </div>
+               </Link>
             </div>
          </div>
 
-         {/* Activity Graph Strip */}
-         <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden">
-            <div className="flex items-end justify-between gap-2 h-40">
-               {[40, 60, 50, 90, 70, 100, 80].map((h, i) => (
-                 <div key={i} className="flex-1 bg-blue-100 rounded-t-xl group relative cursor-pointer flex flex-col justify-end overflow-hidden">
-                    <div className="w-full bg-blue-600 opacity-20 group-hover:opacity-100 transition-opacity" style={{ height: `${h}%` }} />
-                    <div className="absolute inset-x-0 bottom-0 py-2 text-center text-[8px] font-sans font-black text-blue-900 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all">
-                       {h}%
-                    </div>
-                 </div>
-               ))}
-            </div>
-         </div>
+      </aside>
+    </div>
+  );
+}
 
-         {/* Your Mentor Follow List */}
-         <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-               <h3 className="text-xl font-black text-gray-900 tracking-tight">Your mentor</h3>
-               <button className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Plus size={16} /></button>
-            </div>
-            
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="flex items-center justify-between group">
-                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 shadow-inner" />
-                    <div>
-                       <p className="text-xs font-black text-gray-900 leading-tight">Prashant Kumar Singh</p>
-                       <p className="text-[9px] font-bold text-gray-400  tracking-widest mt-0.5">Software developer</p>
-                    </div>
-                 </div>
-                 <button className="px-4 py-1.5 bg-blue-600 text-white text-[9px] font-black  tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-100">
-                    Follow
-                 </button>
-              </div>
-            ))}
-
-            <button className="w-full py-4 bg-gray-50 text-blue-600 text-[10px] font-black  tracking-widest rounded-2xl hover:bg-blue-50 transition-all mt-4">
-               See all
-            </button>
-         </div>
+function StudentDashboardSkeleton() {
+  return (
+    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 animate-pulse">
+      <div className="flex-1 space-y-10">
+        <div className="flex gap-4">
+          <div className="flex-1 h-14 bg-gray-100 rounded-[2rem]" />
+          <div className="w-14 h-14 bg-gray-100 rounded-[1.2rem]" />
+        </div>
+        <div className="h-64 bg-gray-200 rounded-[2.5rem]" />
+        <div className="grid grid-cols-3 gap-6">
+          <div className="h-24 bg-gray-100 rounded-[2rem]" />
+          <div className="h-24 bg-gray-100 rounded-[2rem]" />
+          <div className="h-24 bg-gray-100 rounded-[2rem]" />
+        </div>
+        <div className="space-y-6">
+          <div className="h-8 w-48 bg-gray-200 rounded-lg" />
+          <div className="grid grid-cols-3 gap-8">
+            <div className="h-80 bg-gray-100 rounded-[2.5rem]" />
+            <div className="h-80 bg-gray-100 rounded-[2.5rem]" />
+            <div className="h-80 bg-gray-100 rounded-[2.5rem]" />
+          </div>
+        </div>
+      </div>
+      <aside className="w-full lg:w-80 xl:w-96 space-y-10">
+        <div className="h-[400px] bg-gray-100 rounded-[2.5rem]" />
+        <div className="h-40 bg-gray-100 rounded-[2.5rem]" />
       </aside>
     </div>
   );

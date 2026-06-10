@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera, Globe } from 'lucide-react';
 import Button from '@/components/Button';
 
@@ -10,6 +10,7 @@ export default function InstructorSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -44,11 +45,13 @@ export default function InstructorSettings() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setError(null);
     try {
-      await api.post('/user/update-profile', formData);
+      await api.put('/user/profile-update', formData);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
+      setError(getErrorMessage(err));
       console.error('Failed to update profile', err);
     } finally {
       setIsSaving(false);
@@ -76,8 +79,16 @@ export default function InstructorSettings() {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-24 h-24 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-blue-100 overflow-hidden">
-                  {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="" /> : user?.first_name?.[0]}
+                <div className="w-24 h-24 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-blue-100 overflow-hidden relative">
+                  <span className="absolute inset-0 flex items-center justify-center">{user?.first_name?.[0]}</span>
+                  {user?.avatar && (
+                    <img 
+                      src={user.avatar} 
+                      className="absolute inset-0 w-full h-full object-cover" 
+                      alt="" 
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
                 </div>
                 <button className="absolute -bottom-2 -right-2 p-2 bg-white border border-gray-100 rounded-xl text-blue-600 shadow-lg hover:bg-gray-50 transition-all">
                   <Camera size={16} />
@@ -106,7 +117,12 @@ export default function InstructorSettings() {
           </div>
 
           {/* Form Area */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
+            {error && (
+              <div className="p-4 rounded-2xl bg-red-50 text-red-600 text-[10px] font-black border border-red-100 flex items-center gap-3">
+                <Shield size={16} /> {error}
+              </div>
+            )}
             <form onSubmit={handleUpdate} className="space-y-6">
               <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm space-y-6">
                 <div className="flex items-center gap-2 mb-2 border-l-4 border-blue-600 pl-4">
