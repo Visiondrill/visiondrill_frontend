@@ -1,7 +1,22 @@
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
-const ROOT_URL = API_URL.split('/api')[0]; // e.g. http://localhost:8000
+
+const getRootUrl = (apiUrl: string) => {
+  if (!apiUrl) return '';
+
+  try {
+    const url = new URL(apiUrl);
+    url.pathname = url.pathname.replace(/\/api\/?$/, '');
+    url.search = '';
+    url.hash = '';
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return apiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+  }
+};
+
+const ROOT_URL = getRootUrl(API_URL); // e.g. https://api.visiondrill.com
 
 // Create the API instance
 export const api = axios.create({
