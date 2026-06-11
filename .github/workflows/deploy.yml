@@ -34,6 +34,35 @@ jobs:
           role-to-assume: ${{ secrets.AWS_LMS_FRONTEND_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Wait for existing Amplify branch job
+        shell: bash
+        run: |
+          deadline=$((SECONDS + 1800))
+
+          while true; do
+            active_job="$(aws amplify list-jobs \
+              --app-id "$AMPLIFY_APP_ID" \
+              --branch-name "$AMPLIFY_BRANCH" \
+              --max-items 10 \
+              --query "jobSummaries[?contains(['CREATED','PENDING','PROVISIONING','RUNNING','CANCELLING'], status)] | [0].[jobId,status,jobType,commitId]" \
+              --output text)"
+
+            if [ "$active_job" = "None" ] || [ -z "$active_job" ]; then
+              echo "No pending or running Amplify jobs for ${AMPLIFY_BRANCH}."
+              break
+            fi
+
+            read -r active_job_id active_status active_type active_commit <<< "$active_job"
+            echo "Amplify job ${active_job_id} is ${active_status} (${active_type}, commit ${active_commit}); waiting before starting a release job."
+
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "Timed out waiting for existing Amplify job ${active_job_id} to finish."
+              exit 1
+            fi
+
+            sleep 30
+          done
+
       - name: Start Amplify release job
         id: amplify
         shell: bash
