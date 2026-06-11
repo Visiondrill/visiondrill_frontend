@@ -1,0 +1,82 @@
+name: Deploy LMS Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-lms-frontend-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AMPLIFY_APP_ID: ${{ vars.AMPLIFY_LMS_APP_ID }}
+  AMPLIFY_BRANCH: ${{ vars.AMPLIFY_BRANCH }}
+
+jobs:
+  deploy:
+    name: Trigger Amplify deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_LMS_FRONTEND_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Start Amplify release job
+        id: amplify
+        shell: bash
+        run: |
+          job_id="$(aws amplify start-job \
+            --app-id "$AMPLIFY_APP_ID" \
+            --branch-name "$AMPLIFY_BRANCH" \
+            --job-type RELEASE \
+            --job-reason "GitHub Actions deployment for ${GITHUB_SHA::6}" \
+            --query 'jobSummary.jobId' \
+            --output text)"
+
+          echo "job_id=${job_id}" >> "$GITHUB_OUTPUT"
+          echo "Started Amplify job ${job_id}"
+
+      - name: Wait for Amplify deployment
+        shell: bash
+        run: |
+          job_id="${{ steps.amplify.outputs.job_id }}"
+
+          while true; do
+            status="$(aws amplify get-job \
+              --app-id "$AMPLIFY_APP_ID" \
+              --branch-name "$AMPLIFY_BRANCH" \
+              --job-id "$job_id" \
+              --query 'job.summary.status' \
+              --output text)"
+
+            echo "Amplify job ${job_id}: ${status}"
+
+            case "$status" in
+              SUCCEED)
+                exit 0
+                ;;
+              FAILED|CANCELLED)
+                exit 1
+                ;;
+              CREATED|PENDING|PROVISIONING|RUNNING)
+                sleep 20
+                ;;
+              *)
+                echo "Unexpected Amplify status: ${status}"
+                exit 1
+                ;;
+            esac
+          done
