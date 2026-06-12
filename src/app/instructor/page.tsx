@@ -2,12 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { api, getCsrfCookie } from '@/lib/api';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  TrendingUp, Users, Play, BarChart3, Plus, MoreVertical, Star, ChevronRight,
-  ShieldCheck, Zap, Globe, Wallet, Clock, Sparkles
+  TrendingUp, Users, Plus, ChevronRight, Clock 
 } from 'lucide-react';
 import CourseCreateModal from '@/components/instructor/CourseCreateModal';
 
@@ -16,7 +13,6 @@ export default function InstructorDashboard() {
   const [courses, setCourses] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [newCourseTitle, setNewCourseTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const router = useRouter();
@@ -42,29 +38,7 @@ export default function InstructorDashboard() {
     fetchData();
   }, []);
 
-  const handleCreateCourse = async (e: React.FormEvent, directTitle?: string) => {
-    if (e) e.preventDefault();
-    const title = directTitle || newCourseTitle;
-    if (!title.trim()) return;
-    
-    setIsCreating(true);
-    try {
-      await getCsrfCookie();
-      const payload = {
-        course_title: title,
-        category_id: null,
-        price: 0
-      };
-      const res = await api.post('/instructor/create-course', payload);
-      if (res.data?.id) {
-        router.push(`/instructor/courses/${res.data.id}/curriculum`);
-      }
-    } catch (err) {
-      console.error('Course creation failed:', err);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+
 
   const handleModalSubmit = async (data: { course_title: string; category_id: string; price: string }) => {
     setIsCreating(true);
@@ -93,36 +67,30 @@ export default function InstructorDashboard() {
       {/* 1. Center Column: Operations Hub */}
       <div className="flex-1 min-w-0 space-y-10">
         
-        {/* Command Search */}
-        <div className="flex items-center gap-4">
-           <div className="flex-1 relative group">
-              <Plus className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600 transition-colors" size={20} />
-              <input 
-                placeholder="Initialize new curriculum..." 
-                value={newCourseTitle}
-                onChange={(e) => setNewCourseTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (newCourseTitle ? handleCreateCourse(e as any) : setShowCreateModal(true))}
-                disabled={isCreating}
-                className="w-full bg-white border border-gray-100 rounded-[2rem] pl-16 pr-6 py-5 text-sm font-bold focus:border-blue-200 outline-none transition-all shadow-xl shadow-gray-100/50"
-              />
-           </div>
-           <button 
-             onClick={() => newCourseTitle ? handleCreateCourse(null as any) : setShowCreateModal(true)}
-             disabled={isCreating}
-             className="bg-blue-600 text-white w-14 h-14 flex items-center justify-center rounded-[1.2rem] shadow-xl shadow-blue-200 hover:scale-105 hover:bg-black transition-all active:scale-95 disabled:opacity-50 shrink-0"
-           >
-              {isCreating ? <Clock className="animate-spin" size={20} /> : <Plus size={24} strokeWidth={3} />}
-           </button>
-        </div>
+
 
          {/* Courses Created / Published Metric */}
          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-gray-100/50">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                <div className="max-w-md">
-                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
-                     Courses
-                  </h2>
-                  <p className="text-sm font-medium text-gray-400 mt-2">Your curriculum overview</p>
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
+                       Courses
+                    </h2>
+                    <button 
+                      onClick={() => setShowCreateModal(true)}
+                      className="bg-blue-600 text-white px-5 py-3 rounded-2xl flex items-center gap-2 text-[10px] font-black tracking-widest hover:bg-black transition-all shadow-lg shadow-blue-100 active:scale-95"
+                    >
+                       <Plus size={14} strokeWidth={3} />
+                       NEW CURRICULUM
+                    </button>
+                  </div>
+                   <p className="text-sm font-medium text-gray-400 mt-2">Your curriculum overview</p>
+                   {user?.created_at && (
+                     <p className="text-xs font-semibold text-gray-400 mt-1.5">
+                       Joined {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                     </p>
+                   )}
                </div>
                <div className="flex gap-10">
                   <div className="text-center">
@@ -139,50 +107,7 @@ export default function InstructorDashboard() {
          </div>
 
 
-        {/* Active Curriculum Assets */}
-        <section>
-           <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-gray-900 tracking-tight">Active course assets</h3>
-              <Link href="/instructor/courses" className="text-blue-600 text-[10px] font-black  tracking-widest hover:underline">View fleet</Link>
-           </div>
-           
-           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {courses.slice(0, 4).map((course) => (
-                <div 
-                  key={course.id} 
-                  onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
-                  className="bg-white border border-gray-100 rounded-[2.5rem] p-6 lg:p-8 flex gap-5 hover:shadow-xl hover:shadow-gray-100/50 transition-all group cursor-pointer"
-                >
-                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gray-100 relative overflow-hidden shrink-0 shadow-inner">
-                      <Image src={course.image || '/course-placeholder.jpg'} alt={course.course_title} fill className="object-cover" />
-                   </div>
 
-                   <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                      <div>
-                         <div className="flex items-center justify-between mb-2">
-                           <span className={`text-[9px] font-black px-3 py-1 rounded-lg  tracking-widest ${
-                             course.status === 'published' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                           }`}>
-                             {course.status}
-                           </span>
-                           <MoreVertical size={16} className="text-gray-200" />
-                         </div>
-                         <h4 className="text-sm font-black text-gray-900 leading-tight truncate group-hover:text-blue-600 transition-colors">
-                           {course.course_title}
-                         </h4>
-                      </div>
-                      <div className="flex items-center justify-between gap-4 mt-4">
-                         <div className="flex items-center gap-2">
-                            <Users size={14} className="text-gray-300" />
-                            <span className="text-[10px] font-black text-gray-400 font-sans">142 students</span>
-                         </div>
-                         <p className="text-sm font-black text-gray-900 font-sans">KES {course.price}</p>
-                      </div>
-                   </div>
-                </div>
-              ))}
-           </div>
-        </section>
       </div>
 
       {/* 2. Right Column: System Performance (Sticky) */}
@@ -236,21 +161,4 @@ export default function InstructorDashboard() {
   );
 }
 
-function IntelCard({ label, value, icon, trend, color }: any) {
-  return (
-    <div className="bg-white border border-gray-100 p-6 rounded-[2rem] flex items-center justify-between shadow-sm hover:shadow-md transition-all group">
-       <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl bg-gray-50 ${color} flex items-center justify-center shadow-inner`}>
-             {icon}
-          </div>
-          <div>
-             <p className="text-[9px] font-black text-gray-400  tracking-widest mb-1">{label}</p>
-             <p className="text-xl font-black text-gray-900 font-sans">{value}</p>
-          </div>
-       </div>
-       <div className="text-right">
-          <p className="text-[9px] font-black text-emerald-500">{trend}</p>
-       </div>
-    </div>
-  );
-}
+
