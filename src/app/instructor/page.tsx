@@ -115,52 +115,29 @@ export default function InstructorDashboard() {
            </button>
         </div>
 
-        {/* Executive Hero */}
-        <div className="bg-gray-900 rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl">
-           <div className="absolute top-0 right-0 p-32 bg-blue-500/10 blur-[80px] rounded-full -mr-20 -mt-20"></div>
-           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-              <div className="max-w-md">
-                 <p className="text-[9px] font-black  tracking-[0.3em] mb-3 text-blue-400 uppercase">Strategic Operations</p>
-                 <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-8">
-                    Manage your <br /><span className="italic text-blue-400">Curriculum throughput</span>
-                 </h1>
-                 <div className="flex gap-4">
-                    <button 
-                      onClick={() => setShowCreateModal(true)}
-                      className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white text-[10px] font-black rounded-full hover:bg-black transition-all  tracking-widest shadow-lg shadow-blue-900/50"
-                    >
-                       QUICK PUBLISH <Zap size={14} fill="white" />
-                    </button>
-                    <Link href="/instructor/ai-generator?mode=quiz">
-                      <button className="flex items-center gap-3 px-8 py-4 bg-white/10 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all  tracking-widest backdrop-blur-md border border-white/5">
-                         GENERATE QUIZ <Sparkles size={14} className="text-blue-400" />
-                      </button>
-                    </Link>
-                 </div>
-              </div>
-              
-              <div className="flex gap-10">
-                 <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-2">NETWORK IMPACT</p>
-                    <p className="text-4xl font-black font-sans">{stats?.total_students || '0'}</p>
-                    <p className="text-[9px] text-emerald-400 font-bold mt-2">Active Students</p>
-                 </div>
-                 <div className="w-[1px] h-16 bg-white/10 mt-2" />
-                 <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500  tracking-widest mb-2">REVENUE YIELD</p>
-                    <p className="text-4xl font-black font-sans">{stats?.total_earnings || '0'}</p>
-                    <p className="text-[9px] text-blue-400 font-bold mt-2">KES Total</p>
-                 </div>
-              </div>
-           </div>
-        </div>
+         {/* Courses Created / Published Metric */}
+         <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-gray-100/50">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+               <div className="max-w-md">
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
+                     Courses
+                  </h2>
+                  <p className="text-sm font-medium text-gray-400 mt-2">Your curriculum overview</p>
+               </div>
+               <div className="flex gap-10">
+                  <div className="text-center">
+                     <p className="text-[10px] font-black text-gray-400 tracking-widest mb-2">CREATED</p>
+                     <p className="text-4xl font-black font-sans text-gray-900">{courses.length || '0'}</p>
+                  </div>
+                  <div className="w-[1px] h-16 bg-gray-100 mt-2" />
+                  <div className="text-center">
+                     <p className="text-[10px] font-black text-gray-400 tracking-widest mb-2">PUBLISHED</p>
+                     <p className="text-4xl font-black font-sans text-blue-600">{stats?.published_count || '0'}</p>
+                  </div>
+               </div>
+            </div>
+         </div>
 
-        {/* Global Intelligence Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <IntelCard label="Average rating" value={stats?.average_rating} icon={<Star size={18} fill="currentColor" />} trend="+0.2" color="text-amber-500" />
-           <IntelCard label="Course assets" value={courses.length} icon={<Zap size={18} />} trend="Active" color="text-blue-500" />
-           <IntelCard label="Global Rank" value="#12" icon={<Globe size={18} />} trend="Top 1%" color="text-indigo-500" />
-        </div>
 
         {/* Active Curriculum Assets */}
         <section>
@@ -211,37 +188,11 @@ export default function InstructorDashboard() {
       {/* 2. Right Column: System Performance (Sticky) */}
       <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0 lg:sticky lg:top-10 h-fit">
           
-          {/* Executive Profile */}
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
-             <div className="flex flex-col items-center text-center">
-                <div className="relative mb-6">
-                   <div className="w-28 h-28 rounded-full border-4 border-gray-50 flex items-center justify-center p-2">
-                      <div className="w-full h-full rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-blue-100">
-                         {user?.first_name?.[0]}
-                      </div>
-                   </div>
-                   <div className="absolute bottom-1 right-1 w-8 h-8 bg-emerald-500 border-4 border-white rounded-full" />
-                </div>
-                <h3 className="text-xl font-black text-gray-900 leading-tight">Welcome back, {user?.first_name}</h3>
-                <p className="text-[10px] font-bold text-gray-400  tracking-widest mt-2">{user?.role === 'instructor' ? 'Executive Instructor' : 'System Operator'}</p>
-                
-                <div className="grid grid-cols-2 gap-4 w-full mt-10">
-                   <div className="p-4 bg-gray-50 rounded-2xl">
-                      <p className="text-lg font-black font-sans text-gray-900">{stats?.total_students || 0}</p>
-                      <p className="text-[9px] font-bold text-gray-400  tracking-widest mt-1">Students</p>
-                   </div>
-                   <div className="p-4 bg-gray-50 rounded-2xl">
-                      <p className="text-lg font-black font-sans text-gray-900">{courses.length}</p>
-                      <p className="text-[9px] font-bold text-gray-400  tracking-widest mt-1">Active nodes</p>
-                   </div>
-                </div>
-             </div>
-          </div>
 
           {/* Revenue Velocity Graph Strip */}
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
              <div className="flex items-center justify-between mb-8">
-                <h4 className="text-sm font-black text-gray-900  tracking-widest">Revenue velocity</h4>
+                 <h4 className="text-sm font-black text-gray-900  tracking-widest">Revenue</h4>
                 <TrendingUp size={16} className="text-emerald-500" />
              </div>
              <div className="flex items-end justify-between gap-2 h-32">

@@ -23,7 +23,7 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
 
   const navItems = [
     { name: 'Dashboard', href: '/instructor', icon: LayoutDashboard },
-    { name: 'My courses', href: '/instructor/courses', icon: BookOpen },
+    { name: 'Courses', href: '/instructor/courses', icon: BookOpen },
     { name: 'Create quiz', href: '/instructor/quizzes/create', icon: Sparkles },
     { name: 'Student assets', href: '/instructor/students', icon: Users },
 

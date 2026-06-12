@@ -11,6 +11,7 @@ export default function InstructorSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -58,6 +59,32 @@ export default function InstructorSettings() {
     }
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('avatar', file);
+
+    setIsSaving(true);
+    setError(null);
+    try {
+      const res = await api.post('/profile/update', data);
+      setUser(res.data.user);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      setError(getErrorMessage(err));
+      console.error('Failed to upload avatar', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -81,18 +108,29 @@ export default function InstructorSettings() {
               <div className="relative inline-block mb-6">
                 <div className="w-24 h-24 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-blue-100 overflow-hidden relative">
                   <span className="absolute inset-0 flex items-center justify-center">{user?.first_name?.[0]}</span>
-                  {user?.avatar && (
+                  {user?.picture && (
                     <img 
-                      src={user.avatar} 
+                      src={user.picture} 
                       className="absolute inset-0 w-full h-full object-cover" 
                       alt="" 
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   )}
                 </div>
-                <button className="absolute -bottom-2 -right-2 p-2 bg-white border border-gray-100 rounded-xl text-blue-600 shadow-lg hover:bg-gray-50 transition-all">
+                <button 
+                  type="button"
+                  onClick={handleAvatarClick}
+                  className="absolute -bottom-2 -right-2 p-2 bg-white border border-gray-100 rounded-xl text-blue-600 shadow-lg hover:bg-gray-50 transition-all"
+                >
                   <Camera size={16} />
                 </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleAvatarChange} 
+                  className="hidden" 
+                  accept="image/*"
+                />
               </div>
               <h3 className="text-lg font-black text-gray-900 tracking-tighter">{user?.fullname}</h3>
               <p className="text-xs font-semibold text-gray-400 mt-1">Instructor</p>

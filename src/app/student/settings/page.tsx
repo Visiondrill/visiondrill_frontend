@@ -9,12 +9,14 @@ export default function StudentSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<any>({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
+    avatar: null
   });
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [passwords, setPasswords] = useState({
     current_password: '',
@@ -22,26 +24,54 @@ export default function StudentSettingsPage() {
     new_password_confirmation: ''
   });
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.get('/me');
-        if (res.data) {
-          setProfile({
-            first_name: res.data.first_name || '',
-            last_name: res.data.last_name || '',
-            email: res.data.email || '',
-            phone: res.data.contact_number || res.data.phone || '',
-          });
-        }
-      } catch (err) {
-        console.error('Failed to fetch profile', err);
-      } finally {
-        setIsLoading(false);
+  const fetchUser = async () => {
+    try {
+      const res = await api.get('/me');
+      if (res.data) {
+        setProfile({
+          ...res.data,
+          first_name: res.data.first_name || '',
+          last_name: res.data.last_name || '',
+          email: res.data.email || '',
+          phone: res.data.contact_number || res.data.phone || '',
+        });
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch profile', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUser();
   }, []);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('avatar', file);
+
+    setIsSaving(true);
+    try {
+      const res = await api.post('/profile/update', data);
+      setProfile({
+        ...profile,
+        ...res.data.user
+      });
+      toast.success('Avatar updated successfully!');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,9 +125,11 @@ export default function StudentSettingsPage() {
         {/* Left Col - Avatar & Summary */}
         <div className="lg:col-span-1 space-y-6">
            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center">
-              <div className="relative group cursor-pointer mb-6">
+              <div className="relative group cursor-pointer mb-6" onClick={handleAvatarClick}>
                  <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-blue-100 overflow-hidden relative">
-                    {profile.first_name ? (
+                    {profile.picture ? (
+                       <img src={profile.picture} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : profile.first_name ? (
                        profile.first_name[0]
                     ) : (
                        <User size={48} className="text-white/50" />
@@ -108,6 +140,13 @@ export default function StudentSettingsPage() {
                     <span className="text-xs font-bold capitalize">Update</span>
                  </div>
               </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleAvatarChange} 
+                className="hidden" 
+                accept="image/*"
+              />
               <h3 className="text-xl font-black text-gray-900 capitalize tracking-tight mb-1">
                  {profile.first_name} {profile.last_name}
               </h3>

@@ -91,38 +91,6 @@ export default function InstructorCourses() {
   return (
     <>
     <div className="max-w-[1600px] mx-auto px-4 sm:px-8">
-      <header className="mb-8">
-        <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                 <div className="px-3 py-1 rounded-full bg-cyan-600/20 border border-cyan-500/30 text-cyan-400 text-xs font-black">
-                    Content library
-                 </div>
-                 <span className="text-gray-500 font-bold text-xs">• {courses.length} Modules</span>
-              </div>
-            <h1 className="text-3xl lg:text-4xl font-black text-gray-900 leading-[0.95] tracking-tighter mb-3">
-               Manage your <br />
-               <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent italic text-2xl lg:text-3xl">Instructional assets.</span>
-            </h1>
-            <p className="text-base text-gray-400 font-medium leading-relaxed max-w-lg mb-4">
-               Build high-impact courses and track enrollment from your architect interface.
-            </p>
-          </div>
-          
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-3 px-8 py-4 bg-blue-950 text-white font-semibold rounded-xl hover:bg-black transition-all shadow-xl shadow-blue-100 text-sm active:scale-95 mb-4"
-          >
-            <Plus size={16} className="text-blue-400" /> Create module
-          </button>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <StatCard icon={BookOpen} label="Total assets" value={(stats?.total_courses ?? 0).toString()} badge="Curriculum" color="text-blue-600" />
-        <StatCard icon={Users} label="Active students" value={(stats?.total_students ?? 0).toString()} badge="Engagement" color="text-blue-600" />
-        <StatCard icon={Globe} label="Live modules" value={(stats?.published_count ?? 0).toString()} badge="Marketplace" color="text-blue-600" />
-      </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
          <div className="relative flex-grow max-w-2xl w-full">
@@ -136,6 +104,12 @@ export default function InstructorCourses() {
             />
          </div>
          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-950 text-white font-semibold rounded-xl hover:bg-black transition-all shadow-sm text-xs active:scale-95"
+            >
+              <Plus size={14} className="text-blue-400" /> New Course
+            </button>
             <button className="h-11 w-11 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 hover:text-cyan-600 hover:border-cyan-100 transition-all shadow-sm">
                <Filter size={16} />
             </button>
