@@ -136,20 +136,10 @@ export default function InstructorSettings() {
               <p className="text-xs font-semibold text-gray-400 mt-1">Instructor</p>
             </div>
 
-            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-3xl shadow-xl shadow-blue-100 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-10 blur-xl bg-white rounded-full -mr-10 -mt-10" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <Zap size={18} className="text-blue-200" />
-                  <span className="text-xs font-semibold text-blue-100">AI credits</span>
-                </div>
-                <div className="text-4xl font-black tracking-tighter mb-2">{user?.remaining_ai_tokens || 0}</div>
-                <p className="text-xs text-blue-100 font-medium leading-relaxed opacity-80">
-                  Tokens available for video transcriptions and AI-generated course content.
-                </p>
-                <button className="mt-6 w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-xs font-semibold transition-all">
-                  Top up tokens
-                </button>
+            <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm space-y-4">
+              <h3 className="text-sm font-black text-gray-900 tracking-tight">System Status</h3>
+              <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                <Shield size={16} /> All systems operational
               </div>
             </div>
           </div>
