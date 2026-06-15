@@ -84,11 +84,8 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="mb-8">
         <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight ">Course Curriculum</h3>
-        <Button onClick={handleAddSection} className="flex items-center w-full sm:w-auto justify-center">
-          <Plus size={18} className="mr-2" /> Add Section
-        </Button>
       </div>
 
       <DndContext 
@@ -110,6 +107,12 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
               />
             ))}
           </SortableContext>
+
+          <div className="flex justify-center pt-4">
+            <Button onClick={handleAddSection} className="w-full md:w-auto px-10 h-14 shadow-xl shadow-blue-100 flex items-center justify-center gap-2">
+              <Plus size={18} /> Add Section
+            </Button>
+          </div>
         </div>
       </DndContext>
     </div>
