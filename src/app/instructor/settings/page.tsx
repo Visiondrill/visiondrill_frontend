@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { api, getErrorMessage } from '@/lib/api';
-import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera, Globe } from 'lucide-react';
+import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera, Globe, Lock, KeyRound } from 'lucide-react';
 import Button from '@/components/Button';
 
 export default function InstructorSettings() {
@@ -20,6 +20,16 @@ export default function InstructorSettings() {
     short_description: '',
     long_description: '',
   });
+
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: '',
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -56,6 +66,24 @@ export default function InstructorSettings() {
       console.error('Failed to update profile', err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSaving(true);
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    try {
+      await api.patch('/profile/security', passwordData);
+      setPasswordSuccess(true);
+      setPasswordData({ current_password: '', new_password: '', new_password_confirmation: '' });
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch (err) {
+      setPasswordError(getErrorMessage(err));
+      console.error('Failed to change password', err);
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -273,6 +301,76 @@ export default function InstructorSettings() {
                   className="px-10 h-14 flex items-center gap-3 font-semibold text-sm shadow-xl shadow-blue-200"
                 >
                   {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Save changes
+                </Button>
+              </div>
+            </form>
+
+            {/* Security Section */}
+            <form onSubmit={handlePasswordChange} className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm space-y-6">
+              <div className="flex items-center gap-2 mb-2 border-l-4 border-amber-500 pl-4">
+                <Lock size={18} className="text-amber-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Change Password</h3>
+              </div>
+
+              {passwordError && (
+                <div className="p-4 rounded-2xl bg-red-50 text-red-600 text-[10px] font-black border border-red-100 flex items-center gap-3">
+                  <Shield size={16} /> {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="flex items-center gap-2 text-green-600 font-semibold text-sm p-3 bg-emerald-50 rounded-xl">
+                  <CheckCircle size={18} /> Password changed successfully!
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-2">Current Password</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
+                  <input
+                    type="password"
+                    value={passwordData.current_password}
+                    onChange={e => setPasswordData({...passwordData, current_password: e.target.value})}
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-amber-50 focus:border-amber-400 outline-none font-medium text-sm transition-all"
+                    placeholder="Enter current password"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.new_password}
+                    onChange={e => setPasswordData({...passwordData, new_password: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-amber-50 focus:border-amber-400 outline-none font-medium text-sm transition-all"
+                    placeholder="Min 8 characters"
+                    minLength={8}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-2">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.new_password_confirmation}
+                    onChange={e => setPasswordData({...passwordData, new_password_confirmation: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-amber-50 focus:border-amber-400 outline-none font-medium text-sm transition-all"
+                    placeholder="Re-enter new password"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="px-8 h-12 flex items-center gap-2 font-semibold text-sm bg-amber-500 hover:bg-amber-600 shadow-xl shadow-amber-200"
+                >
+                  {passwordSaving ? <Loader2 className="animate-spin" size={16} /> : <Lock size={16} />} Update Password
                 </Button>
               </div>
             </form>

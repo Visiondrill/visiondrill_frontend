@@ -225,7 +225,7 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
           <div className="mb-6 p-6 bg-red-50 border border-red-100 rounded-3xl flex items-start gap-4">
             <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={24} />
             <div>
-              <p className="font-black text-red-800 text-sm  mb-1 tracking-widest">Architect Error</p>
+              <p className="font-black text-red-800 text-sm  mb-1 tracking-widest">System Error</p>
               <p className="text-red-700/80 text-sm font-medium leading-relaxed">{statusMessage}</p>
             </div>
           </div>
