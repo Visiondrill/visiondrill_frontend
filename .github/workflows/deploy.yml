@@ -40,19 +40,27 @@ jobs:
           deadline=$((SECONDS + 1800))
 
           while true; do
+            # Get the first active job info. We trim whitespace to ensure the 'None' check is reliable.
             active_job="$(aws amplify list-jobs \
               --app-id "$AMPLIFY_APP_ID" \
               --branch-name "$AMPLIFY_BRANCH" \
               --max-items 10 \
               --query "jobSummaries[?contains(['CREATED','PENDING','PROVISIONING','RUNNING','CANCELLING'], status)] | [0].[jobId,status,jobType,commitId]" \
-              --output text)"
+              --output text | xargs)"
 
-            if [[ -z "$active_job" || "$active_job" == "None" ]]; then
+            if [[ -z "$active_job" || "$active_job" == "None" || "$active_job" == "None None None None" ]]; then
               echo "No pending or running Amplify jobs for ${AMPLIFY_BRANCH}."
               break
             fi
 
             read -r active_job_id active_status active_type active_commit <<< "$active_job"
+            
+            # Additional safety check: if jobId is None, we should stop
+            if [[ "$active_job_id" == "None" ]]; then
+              echo "No active Amplify jobs found."
+              break
+            fi
+
             echo "Amplify job ${active_job_id} is ${active_status} (${active_type}, commit ${active_commit}); waiting before starting a release job."
 
             if [ "$SECONDS" -ge "$deadline" ]; then
