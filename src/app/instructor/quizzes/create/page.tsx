@@ -141,19 +141,28 @@ export default function CreateCommandQuiz() {
       return;
     }
 
-    const mcqQuestions = questions.filter(q => q.quiz_question_type_id === 1);
-    for (const q of mcqQuestions) {
-      if (!q.question.trim()) {
-        setError('All multiple-choice questions must have text.');
-        return;
-      }
-      if (q.answers.length < 2) {
-        setError('All multiple-choice questions need at least 2 answers.');
-        return;
-      }
-      if (!q.answers.some(a => a.is_right)) {
-        setError('Each multiple-choice question must have a correct answer selected.');
-        return;
+    // Questions validation only happens if questions are actually present
+    // OR from the Questions step. We skip it during initial creation to allow "Save & Build"
+    const validationQuestions = questions.filter(q => q.quiz_question_type_id === 1 && q.question.trim());
+    
+    // If no questions have text yet, we allow creation (they are just starting)
+    // If they HAVE entered some text, then we perform full validation
+    const hasStartedQuestions = questions.some(q => q.question.trim());
+
+    if (hasStartedQuestions) {
+      for (const q of questions.filter(curr => curr.quiz_question_type_id === 1)) {
+        if (!q.question.trim()) {
+           setError('All multiple-choice questions must have text.');
+           return;
+        }
+        if (q.answers.length < 2) {
+          setError('All multiple-choice questions need at least 2 answers.');
+          return;
+        }
+        if (!q.answers.some(a => a.is_right)) {
+          setError('Each multiple-choice question must have a correct answer selected.');
+          return;
+        }
       }
     }
 
