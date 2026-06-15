@@ -51,11 +51,7 @@ export default function InstructorStudents() {
     setStudentsLoading(true);
     try {
       const res = await api.get(`/instructor/courses/${id}/students`);
-      const studentsWithProgress = res.data.students.map((s: any) => ({
-        ...s,
-        progress: Math.floor(Math.random() * 100)
-      }));
-      setStudents(studentsWithProgress);
+      setStudents(res.data.students);
     } catch (err) {
       console.error("Failed to load students", err);
     } finally {

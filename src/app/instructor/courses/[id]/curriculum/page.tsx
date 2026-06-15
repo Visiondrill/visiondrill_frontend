@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { api, getCsrfCookie } from '@/lib/api';
 import { Section } from '@/types/curriculum';
 import CurriculumEditor from '@/components/instructor/CurriculumEditor';
-import { Layout, BookOpen, Settings, ChevronLeft, Sparkles } from 'lucide-react';
+import { Layout, BookOpen, Settings, ChevronLeft, Eye } from 'lucide-react';
 import Link from 'next/link';
 
 const InstructorCurriculumPage = () => {
@@ -67,7 +67,7 @@ const InstructorCurriculumPage = () => {
                  </Link>
                  <Link href={`/courses/${course.slug}/learn`}>
                     <button className="h-14 px-8 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl flex items-center gap-3">
-                       <Sparkles size={18} className="text-emerald-400" /> Preview Mode
+                       <Eye size={18} className="text-blue-400" /> Preview Mode
                     </button>
                  </Link>
               </div>

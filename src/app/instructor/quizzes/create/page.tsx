@@ -96,50 +96,6 @@ export default function CreateCommandQuiz() {
                   onChange={(e) => setHeading(e.target.value)}
                 />
              </div>
-             
-             {/* AI PDF Uploader */}
-             <div className="relative z-10">
-                <label className="flex flex-col items-center justify-center px-6 py-4 bg-gray-900 hover:bg-black text-white rounded-3xl cursor-pointer transition-all border border-white/10 group">
-                   <div className="flex items-center gap-3">
-                      <FileText size={18} className="text-blue-400 group-hover:scale-110 transition-transform" />
-                      <div className="text-left">
-                         <p className="text-[10px] font-black tracking-widest uppercase">AUTO-GENERATE</p>
-                         <p className="text-[9px] text-gray-400 font-bold">Upload PDF Document</p>
-                      </div>
-                   </div>
-                   <input 
-                     type="file" 
-                     accept="application/pdf" 
-                     className="hidden" 
-                     onChange={async (e) => {
-                       const file = e.target.files?.[0];
-                       if (!file) return;
-                       setIsLoading(true);
-                       // Mocking AI Delay
-                       setTimeout(() => {
-                         setQuestions([
-                           { 
-                             question: 'Based on the uploaded document, what is the primary objective of the system architecture?', 
-                             quiz_question_type_id: 1, 
-                             answers: [
-                               { answer: 'Scaling horizontal throughput', is_right: true },
-                               { answer: 'Minimizing database latency', is_right: false },
-                               { answer: 'Ensuring synchronous handshake', is_right: false }
-                             ] 
-                           },
-                           { 
-                             question: 'Explain the security implications mentioned in section 4.2 of the documentation.', 
-                             quiz_question_type_id: 2, 
-                             answers: [] 
-                           }
-                         ]);
-                         setIsLoading(false);
-                         alert('AI Intelligence: Quiz generated from PDF successfully.');
-                       }, 2000);
-                     }}
-                   />
-                </label>
-             </div>
           </div>
 
           {/* Questions */}
@@ -249,7 +205,7 @@ export default function CreateCommandQuiz() {
             disabled={isLoading}
             className="w-full py-6 bg-blue-950 text-white rounded-[2.5rem] font-black text-[11px] tracking-widest uppercase shadow-2xl shadow-blue-200 hover:bg-black transition-all"
           >
-             {isLoading ? <Loader2 className="animate-spin inline mr-2" /> : <Sparkles className="inline mr-2" size={16} />} 
+             {isLoading ? <Loader2 className="animate-spin inline mr-2" /> : <Send className="inline mr-2" size={16} />} 
              DEPLOY DRILL SYSTEM
           </Button>
         </div>

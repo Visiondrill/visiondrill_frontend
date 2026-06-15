@@ -7,16 +7,19 @@ import Button from '@/components/Button';
 
 export default function InstructorRevenue() {
   const [stats, setStats] = useState<any>(null);
+  const [growthData, setGrowthData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [dashboardRes, revenueRes] = await Promise.all([
+        const [dashboardRes, revenueRes, growthRes] = await Promise.all([
           api.get('/instructor/dashboard-stats'),
-          api.get('/instructor/revenue')
+          api.get('/instructor/revenue'),
+          api.get('/instructor/revenue-growth')
         ]);
         setStats({ ...dashboardRes.data, ...revenueRes.data });
+        setGrowthData(growthRes.data);
       } catch (err) {
         console.error('Failed to load data', err);
       } finally {
@@ -42,7 +45,10 @@ export default function InstructorRevenue() {
             <h1 className="text-4xl font-black text-gray-900 tracking-tighter mb-2">Revenue analytics</h1>
             <p className="text-gray-500 font-medium">Track your earnings, withdrawal history, and course performance.</p>
           </div>
-          <Button className="flex items-center gap-2 px-6 py-4 bg-gray-900 hover:bg-black text-sm font-semibold rounded-2xl transition-all shadow-xl shadow-gray-200">
+          <Button 
+            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/instructor/export-revenue`, '_blank')}
+            className="flex items-center gap-2 px-6 py-4 bg-gray-900 hover:bg-black text-sm font-semibold rounded-2xl transition-all shadow-xl shadow-gray-200"
+          >
             <Download size={16} /> Export report
           </Button>
         </div>
@@ -67,9 +73,30 @@ export default function InstructorRevenue() {
                 <option>Last year</option>
               </select>
             </div>
-            <div className="h-[300px] w-full bg-gray-50 rounded-3xl flex items-center justify-center flex-col gap-4 border-2 border-dashed border-gray-100 group-hover:border-blue-100 transition-colors">
-              <PieChart className="text-gray-200 group-hover:text-blue-100 transition-colors" size={64} />
-              <p className="text-xs font-medium text-gray-400">Visual analytics loading...</p>
+            <div className="h-[300px] w-full bg-gray-50 rounded-3xl p-8 flex flex-col justify-end gap-2 border border-gray-100 group-hover:border-blue-100 transition-colors">
+              <div className="flex items-end justify-between h-full gap-4">
+                {growthData.length > 0 ? (
+                  growthData.map((item: any, idx: number) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 group/bar">
+                      <div 
+                        className="w-full bg-blue-100 rounded-t-lg group-hover/bar:bg-blue-600 transition-all relative overflow-hidden"
+                        style={{ height: `${Math.min(100, (item.total / (Math.max(...growthData.map(d => d.total)) || 1)) * 100)}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent" />
+                      </div>
+                      <span className="text-[9px] font-black text-gray-400 tracking-tighter uppercase">{item.month.split('-')[1]}</span>
+                      <div className="opacity-0 group-hover/bar:opacity-100 absolute -top-10 bg-black text-white text-[10px] py-1 px-2 rounded font-black whitespace-nowrap transition-opacity">
+                        KES {item.total}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+                    <PieChart className="text-gray-200 group-hover:text-blue-100 transition-colors" size={64} />
+                    <p className="text-xs font-medium text-gray-400">No revenue data for the selected period</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -121,12 +148,12 @@ export default function InstructorRevenue() {
               <div className="flex flex-wrap items-center gap-8">
                 <div>
                   <p className="text-xs font-medium text-gray-500 mb-1">Available for withdrawal</p>
-                  <p className="text-4xl font-black text-blue-400">$8,450.00</p>
+                  <p className="text-4xl font-black text-blue-400">KES {stats?.available_withdrawal || '0.00'}</p>
                 </div>
                 <div className="h-12 w-px bg-white/10 hidden md:block" />
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">Last payout</p>
-                  <p className="text-xl font-black text-white">$4,000.00</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">Total Earned (Verified)</p>
+                  <p className="text-xl font-black text-white">KES {stats?.total_earnings || '0.00'}</p>
                 </div>
               </div>
             </div>

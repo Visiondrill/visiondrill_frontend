@@ -35,7 +35,33 @@ export default function InstructorCourses() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
   const router = useRouter();
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (confirmDeleteId) {
+      const timer = setTimeout(() => setConfirmDeleteId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [confirmDeleteId]);
+
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return;
+    }
+    
+    try {
+      await api.delete(`/instructor/courses/${id}`);
+      setCourses(prev => prev.filter(c => c.id !== id));
+      setConfirmDeleteId(null);
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
+  };
 
   const handleModalSubmit = async (data: { course_title: string; category_id: string; price: string }) => {
     setCreating(true);
@@ -75,9 +101,13 @@ export default function InstructorCourses() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
 
-  const filtered = courses.filter(c =>
-    c.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = courses.filter(c => {
+    const matchesSearch = c.course_title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === 'ALL' || c.status === activeTab;
+    return matchesSearch && matchesTab;
+  });
+
+  const getCount = (status: string) => courses.filter(c => c.status === status).length;
 
   if (isLoading) {
     return (
@@ -92,60 +122,98 @@ export default function InstructorCourses() {
     <>
     <div className="max-w-[1600px] mx-auto px-4 sm:px-8">
 
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
          <div className="relative flex-grow max-w-2xl w-full">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
             <input
                type="text"
-               placeholder="Search..."
+               placeholder="Search architectures..."
                value={searchTerm}
                onChange={e => setSearchTerm(e.target.value)}
-               className="w-full pl-14 pr-6 py-3.5 bg-white border border-gray-100 rounded-xl focus:ring-8 focus:ring-cyan-50 focus:border-cyan-200 outline-none font-bold text-gray-900 transition-all shadow-sm text-xs"
+               className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none font-bold text-gray-900 transition-all shadow-sm text-xs"
             />
          </div>
-         <div className="flex items-center gap-3">
+         <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-950 text-white font-semibold rounded-xl hover:bg-black transition-all shadow-sm text-xs active:scale-95"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 h-14 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 text-[10px] tracking-widest uppercase active:scale-95"
             >
-              <Plus size={14} className="text-blue-400" /> New Course
+              <Plus size={16} /> New Course
             </button>
-            <button className="h-11 w-11 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 hover:text-cyan-600 hover:border-cyan-100 transition-all shadow-sm">
-               <Filter size={16} />
+            <button className="h-14 w-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
+               <Filter size={18} />
             </button>
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-20">
+      <div className="flex items-center gap-8 mb-12 border-b border-gray-100 px-2 overflow-x-auto scrollbar-hide">
+          <TabItem label="All" count={courses.length} active={activeTab === 'ALL'} onClick={() => setActiveTab('ALL')} />
+          <TabItem label="Published" count={getCount('PUBLISHED')} active={activeTab === 'PUBLISHED'} onClick={() => setActiveTab('PUBLISHED')} />
+          <TabItem label="Drafts" count={getCount('DRAFT')} active={activeTab === 'DRAFT'} onClick={() => setActiveTab('DRAFT')} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-20">
          {filtered.map(course => (
             <div 
               key={course.id} 
               onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
-              className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-all group cursor-pointer"
+              className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:shadow-2xl hover:shadow-blue-50 transition-all group cursor-pointer flex flex-col h-full"
             >
-
-               <div className="relative h-56 bg-gray-100 overflow-hidden">
+               <div className="relative h-44 bg-gray-100 overflow-hidden">
                   {course.thumbnail ? (
                      <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                   ) : (
                      <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                        <BookOpen size={48} className="text-gray-200" />
+                        <BookOpen size={32} className="text-gray-200" />
                      </div>
                   )}
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    {course.status === 'PUBLISHED' ? (
+                      <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[9px] font-black tracking-widest uppercase shadow-lg shadow-emerald-200 flex items-center gap-1.5 animate-in fade-in duration-500">
+                        <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
+                        Live
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[9px] font-black tracking-widest uppercase shadow-lg shadow-amber-200 animate-in slide-in-from-left-2 duration-300">
+                        Draft
+                      </span>
+                    )}
+                    {course.enrollments_count > 0 && (
+                      <span className="px-3 py-1 rounded-full bg-blue-600/90 backdrop-blur-md text-[9px] font-black tracking-widest text-white uppercase shadow-sm flex items-center gap-1">
+                        <Users size={10} /> {course.enrollments_count}
+                      </span>
+                    )}
+                  </div>
                </div>
-               <div className="p-6">
-                  <h3 className="text-lg font-black text-gray-900 tracking-tighter mb-4 line-clamp-2 min-h-[3rem] group-hover:text-cyan-600 transition-colors">
-                     {course.course_title}
-                  </h3>
-                  <div className="flex items-center gap-3">
-                     <Link href={`/instructor/courses/${course.id}/curriculum`} className="flex-grow">
-                        <button className="w-full h-14 bg-cyan-950 text-white font-black rounded-2xl text-xs hover:bg-black transition-all flex items-center justify-center gap-2">
-                           <Layout size={16} /> Edit architect
-                        </button>
-                     </Link>
-                     <button className="h-14 w-14 bg-white border border-gray-100 text-gray-300 hover:text-red-600 rounded-2xl flex items-center justify-center transition-all">
-                        <Trash2 size={20} />
+
+               <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex justify-between items-start mb-2 gap-4">
+                    <h3 className="text-sm font-black text-gray-900 tracking-tight line-clamp-2 min-h-[2.5rem] group-hover:text-blue-600 transition-colors uppercase leading-tight">
+                       {course.course_title}
+                    </h3>
+                    <p className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
+                      {course.price > 0 ? `KES ${course.price}` : 'FREE'}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-auto pt-6 flex items-center gap-2">
+                     <button className="flex-grow h-12 bg-gray-950 text-white font-black rounded-xl text-[10px] tracking-widest uppercase hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
+                        <Layout size={14} /> Edit architect
                      </button>
+                      <button 
+                         onClick={(e) => handleDelete(course.id, e)}
+                         className={`h-12 border transition-all shadow-sm flex items-center justify-center gap-2 overflow-hidden px-4 ${
+                           confirmDeleteId === course.id 
+                           ? 'bg-red-500 border-red-500 text-white w-28 rounded-xl' 
+                           : 'bg-white border-gray-100 text-gray-300 hover:text-red-500 hover:border-red-100 w-12 rounded-xl'
+                         }`}
+                       >
+                         {confirmDeleteId === course.id ? (
+                           <span className="text-[9px] font-black tracking-widest uppercase animate-in slide-in-from-right-2">Confirm?</span>
+                         ) : (
+                           <Trash2 size={16} />
+                         )}
+                      </button>
                   </div>
                </div>
             </div>
@@ -159,6 +227,26 @@ export default function InstructorCourses() {
       isCreating={creating}
     />
     </>
+  );
+}
+
+function TabItem({ label, count, active, onClick }: { label: string, count: number, active: boolean, onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`pb-4 px-2 flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+        active 
+          ? 'border-blue-600 text-gray-900 opacity-100' 
+          : 'border-transparent text-gray-400 hover:text-gray-600 opacity-60'
+      }`}
+    >
+      <span className="text-xs font-black tracking-widest uppercase">{label}</span>
+      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+        active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'
+      }`}>
+        {count}
+      </span>
+    </button>
   );
 }
 

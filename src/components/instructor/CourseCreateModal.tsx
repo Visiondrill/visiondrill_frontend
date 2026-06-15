@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-  X, ChevronRight, Zap, Loader2, ShieldCheck, Sparkles, Check
+  X, ChevronRight, Check
 } from 'lucide-react';
 
 interface CourseCreateModalProps {
@@ -41,7 +41,7 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
     setStep(prev => prev - 1);
   };
 
-  const handleDeploy = async () => {
+  const handleComplete = async () => {
     await onSubmit(form);
     setStep(1);
     setForm({ course_title: '', category_id: '', price: '' });
@@ -65,7 +65,7 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
         <div className="flex flex-col md:flex-row h-full">
           {/* Mobile Step Indicator */}
           <div className="md:hidden flex justify-between px-10 pt-10 pb-0">
-             {[1, 2, 3].map(n => (
+             {[1, 2].map(n => (
                <div key={n} className={`h-1 flex-1 mx-1 rounded-full ${step >= n ? 'bg-blue-600' : 'bg-gray-100'}`}></div>
              ))}
           </div>
@@ -73,22 +73,17 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
           {/* Step Indicator Sidebar (Desktop) */}
           <div className="w-full md:w-64 bg-gray-50 p-10 border-r border-gray-100 hidden md:block">
             <div className="space-y-8">
-              <StepItem number={1} label="Identity" active={step === 1} completed={step > 1} />
+              <StepItem number={1} label="Create course" active={step === 1} completed={step > 1} />
               <StepItem number={2} label="Monetization" active={step === 2} completed={step > 2} />
-              <StepItem number={3} label="Architecture" active={step === 3} completed={step > 3} />
             </div>
           </div>
 
           <div className="flex-1 p-8 md:p-12">
             {step === 1 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div>
-                   <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">Course Identity</h2>
-                   <p className="text-xs font-medium text-gray-400">Initialize your curriculum with a strong title and focus area.</p>
-                </div>
                 <div className="space-y-6">
                   <div className="group">
-                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">TITLE</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">Course title</label>
                     <input
                       autoFocus
                       required
@@ -99,7 +94,7 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
                     />
                   </div>
                   <div className="group">
-                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">VERTICAL</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">Category</label>
                     <select
                       value={form.category_id}
                       onChange={e => setForm({ ...form, category_id: e.target.value })}
@@ -116,7 +111,7 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
                   onClick={handleNext}
                   className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-100 active:scale-95"
                 >
-                  Infrastructure settings <ChevronRight size={18} />
+                  Next <ChevronRight size={18} />
                 </button>
               </div>
             )}
@@ -124,12 +119,11 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
             {step === 2 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div>
-                   <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">Revenue Model</h2>
-                   <p className="text-xs font-medium text-gray-400">Set the market value for this instructional asset.</p>
+                   <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">Cost price</h2>
                 </div>
                 <div className="space-y-6">
                   <div className="group">
-                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">VALUATION (KES)</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">Amount</label>
                     <input
                       type="number"
                       placeholder="0 for free course..."
@@ -137,14 +131,6 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
                       onChange={e => setForm({ ...form, price: e.target.value })}
                       className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-8 focus:ring-blue-50 focus:border-blue-200 transition-all"
                     />
-                  </div>
-                  <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
-                     <div className="flex gap-3">
-                        <Sparkles size={18} className="text-blue-600 shrink-0" />
-                        <p className="text-xs text-blue-900 font-medium leading-relaxed">
-                           Instructors who set a valuation typically see 4x higher retention rates compared to free assets.
-                        </p>
-                     </div>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -154,45 +140,17 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
                   >
                     Back
                   </button>
-                  <button 
-                    onClick={handleNext}
-                    className="flex-[2] py-5 bg-blue-600 text-white font-black rounded-2xl text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-100 active:scale-95"
-                  >
-                    Finalize architecture <ChevronRight size={18} />
-                  </button>
+                   <button 
+                     onClick={handleComplete}
+                     disabled={isCreating}
+                     className="flex-[2] py-5 bg-blue-600 text-white font-black rounded-2xl text-sm hover:bg-gray-900 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-100 active:scale-95 disabled:opacity-50"
+                   >
+                     {isCreating ? 'Creating...' : 'Complete'} <ChevronRight size={18} />
+                   </button>
                 </div>
               </div>
             )}
 
-            {step === 3 && (
-              <div className="space-y-8 animate-in fade-in zoom-in duration-500">
-                <div className="text-center py-6">
-                   <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                      <Zap size={32} className="text-blue-600 animate-pulse" />
-                   </div>
-                   <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">Ready for deployment</h2>
-                   <p className="text-xs font-medium text-gray-400 max-w-[280px] mx-auto">
-                      Internal systems have verified the course configuration. You are now ready to initialize the asset.
-                   </p>
-                </div>
-                
-                <div className="flex flex-col gap-3">
-                  <button 
-                    onClick={handleDeploy} 
-                    disabled={isCreating} 
-                    className="w-full py-5 bg-gray-900 text-white font-black rounded-2xl text-sm hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200 active:scale-95"
-                  >
-                    {isCreating ? <Loader2 className="animate-spin" /> : <ShieldCheck size={18} />} Deploy course
-                  </button>
-                  <button 
-                     onClick={handleBack}
-                     className="w-full py-4 text-xs font-black text-gray-400 hover:text-gray-900 transition-all"
-                  >
-                     Review configuration
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

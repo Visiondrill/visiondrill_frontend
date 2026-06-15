@@ -32,7 +32,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   ];
 
   const utilityItems = [
-    { name: 'Ai generator', href: '/instructor/ai-generator', icon: Cpu },
     { name: 'Revenue', href: '/instructor/revenue', icon: Wallet },
     { name: 'Settings', href: '/instructor/settings', icon: Settings },
   ];
@@ -46,7 +45,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
         </div>
 
         <nav className="flex-1 px-6 space-y-2">
-          <p className="px-4 py-3 text-[10px] font-black text-gray-400 tracking-[0.2em]">Command</p>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -68,7 +66,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
           })}
 
           <div className="pt-10">
-            <p className="px-4 py-3 text-[10px] font-black text-gray-400 tracking-[0.2em]">Intelligence</p>
             {utilityItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
