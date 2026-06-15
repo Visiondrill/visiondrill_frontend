@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import {
-  BookOpen, Users, Plus, Search, Filter, Layout, Trash2, Globe, Loader2, X, Sparkles,
+  BookOpen, Users, Plus, Search, Layout, Trash2, Globe, Loader2, X, Sparkles,
   ChevronRight, ShieldCheck, Zap, ArrowLeft, Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -127,7 +127,7 @@ export default function InstructorCourses() {
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
             <input
                type="text"
-               placeholder="Search architectures..."
+               placeholder="Search Courses..."
                value={searchTerm}
                onChange={e => setSearchTerm(e.target.value)}
                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none font-bold text-gray-900 transition-all shadow-sm text-xs"
@@ -138,12 +138,9 @@ export default function InstructorCourses() {
               onClick={() => setShowCreateModal(true)}
               className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 h-14 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 text-[10px] tracking-widest uppercase active:scale-95"
             >
-              <Plus size={16} /> New Course
+              <Plus size={16} /> NEW COURSE
             </button>
-            <button className="h-14 w-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
-               <Filter size={18} />
-            </button>
-         </div>
+          </div>
       </div>
 
       <div className="flex items-center gap-8 mb-12 border-b border-gray-100 px-2 overflow-x-auto scrollbar-hide">
@@ -197,9 +194,9 @@ export default function InstructorCourses() {
                   </div>
                   
                   <div className="mt-auto pt-6 flex items-center gap-2">
-                     <button className="flex-grow h-12 bg-gray-950 text-white font-black rounded-xl text-[10px] tracking-widest uppercase hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
-                        <Layout size={14} /> Edit architect
-                     </button>
+                      <button className="flex-grow h-12 bg-gray-950 text-white font-black rounded-xl text-[10px] tracking-widest uppercase hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200">
+                        <Layout size={14} /> EDIT COURSE
+                      </button>
                       <button 
                          onClick={(e) => handleDelete(course.id, e)}
                          className={`h-12 border transition-all shadow-sm flex items-center justify-center gap-2 overflow-hidden px-4 ${

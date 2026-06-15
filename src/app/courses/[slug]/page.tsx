@@ -139,7 +139,7 @@ const CourseDetailPage = () => {
                 <div className="flex items-center gap-4 group cursor-default">
                   <img src={course.author.picture} className="w-12 h-12 rounded-2xl border-2 border-white/10 group-hover:rotate-12 transition-transform object-cover" alt="" />
                   <div>
-                    <p className="text-[10px] font-black text-white/40  tracking-widest leading-none mb-1">Architected By</p>
+                    <p className="text-[10px] font-black text-white/40  tracking-widest leading-none mb-1">Created By</p>
                     <p className="text-sm font-black text-white tracking-tight underline decoration-blue-600/50 underline-offset-4">{course.author.fullname}</p>
                   </div>
                 </div>
@@ -243,7 +243,7 @@ const CourseDetailPage = () => {
             {activeTab === 'curriculum' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex justify-between items-center mb-10 px-4">
-                   <h3 className="text-xl font-black text-gray-900  tracking-tighter italic">Syllabus Architecture</h3>
+                   <h3 className="text-xl font-black text-gray-900  tracking-tighter italic">Syllabus</h3>
                    <span className="text-[10px] font-black text-gray-400  tracking-widest">{course.sections.length} Modules Total</span>
                 </div>
                 {course.sections.map((section, sIdx) => (
@@ -258,7 +258,7 @@ const CourseDetailPage = () => {
                         </div>
                         <div>
                           <h4 className="font-black text-gray-900 leading-none mb-2  tracking-tighter text-sm">{section.title}</h4>
-                          <span className="text-[10px] font-black text-gray-400  tracking-[0.2em]">{section.lessons.length} Drill Points</span>
+                          <span className="text-[10px] font-black text-gray-400  tracking-[0.2em]">{section.lessons.length} Lessons</span>
                         </div>
                       </div>
                       <ChevronDown size={20} className={`text-gray-300 transition-transform duration-500 ${expandedSections.includes(section.id) ? 'rotate-180 text-blue-600' : ''}`} />
@@ -307,7 +307,7 @@ const CourseDetailPage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-12 pt-12 border-t border-gray-50">
                    <InstructorMetric label="Avg Rating" value="4.8" icon={<Star size={14} className="text-yellow-500" />} />
                    <InstructorMetric label="Enrollments" value="15.2k" icon={<Users size={14} className="text-blue-500" />} />
-                   <InstructorMetric label="Drill Modules" value="24" icon={<Target size={14} className="text-purple-500" />} />
+                   <InstructorMetric label="Lessons" value="24" icon={<Target size={14} className="text-purple-500" />} />
                    <InstructorMetric label="Reviews" value="1.4k" icon={<FileText size={14} className="text-emerald-500" />} />
                 </div>
               </div>

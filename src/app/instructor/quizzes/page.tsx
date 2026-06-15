@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import type { Quiz } from '@/types/quiz';
 import {
-  Sparkles, Plus, Search, Eye, Send, Clock, Infinity, Users,
+  Sparkles, Search, Eye, Send, Clock, Infinity, Users,
   Loader2, ChevronRight, Calendar, Target, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
@@ -59,21 +59,10 @@ export default function InstructorQuizzesDashboard() {
               </span>
             </div>
             <h1 className="text-5xl lg:text-6xl font-black text-gray-900 leading-[0.95] tracking-tight mb-6">
-              Quiz & Assessment<br />
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-400 bg-clip-text text-transparent italic text-4xl lg:text-5xl">
-                Command Center.
-              </span>
+              Quiz & Assessment
             </h1>
-            <p className="text-lg text-gray-400 font-medium leading-relaxed max-w-xl">
-              Create, distribute, and monitor all your assessments from one central console.
-            </p>
           </div>
 
-          <Link href="/instructor/quizzes/create">
-            <Button className="flex items-center gap-3 px-8 h-16 bg-blue-600 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest text-[11px] active:scale-95">
-              <Plus size={20} /> Create New Quiz
-            </Button>
-          </Link>
         </div>
       </header>
 

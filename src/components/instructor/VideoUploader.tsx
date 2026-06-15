@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { Upload, Link2, Loader2, CheckCircle, AlertCircle, Brain, Video, X, Edit3, Save, Sparkles } from 'lucide-react';
+import { Upload, Loader2, CheckCircle, AlertCircle, Brain, Video, X, Edit3, Save, Sparkles } from 'lucide-react';
 
 interface VideoUploaderProps {
   lessonId: number;
@@ -12,8 +12,6 @@ interface VideoUploaderProps {
 }
 
 export default function VideoUploader({ lessonId, courseId, onTranscribed, onClose }: VideoUploaderProps) {
-  const [mode, setMode] = useState<'youtube' | 'upload'>('youtube');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [status, setStatus] = useState<'idle' | 'uploading' | 'transcribing' | 'done' | 'error'>('idle');
@@ -105,23 +103,26 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent, overrideFile?: File) => {
+    e?.preventDefault();
     setStatus('uploading');
     setStatusMessage('');
 
     try {
-      let videoUrl = '';
+      if (!file && !overrideFile) throw new Error('Please select a file');
+      
+      setStatusMessage('Uploading video file…');
+      const formData = new FormData();
+      formData.append('file', overrideFile || file!);
 
-      if (mode === 'youtube') {
-        if (!youtubeUrl.trim()) throw new Error('Please enter a YouTube URL');
-        videoUrl = youtubeUrl.trim();
-        setUploadProgress(100);
-      } else {
-        setStatusMessage('Uploading video file…');
-        videoUrl = await uploadVideoFile();
-      }
-
+      const uploadResponse = await api.post(`/upload/${lessonId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (evt) => {
+          if (evt.total) setUploadProgress(Math.round((evt.loaded * 100) / evt.total));
+        },
+      });
+      
+      const videoUrl = uploadResponse.data.video_url;
       await requestTranscription(videoUrl);
     } catch (err: any) {
       setStatus('error');
@@ -134,12 +135,18 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
       {/* Header */}
       <div className="flex items-center justify-between p-8 border-b border-gray-50 bg-gray-50/30">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg shadow-gray-200">
+          <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg shadow-gray-300">
             <Video className="text-white" size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-black text-gray-900  tracking-tighter">Transcription Studio</h3>
-            <p className="text-[10px] text-gray-400 font-bold  tracking-widest mt-1">Lesson Architect • AI Engine active</p>
+            <h3 className="text-xl font-black text-gray-900 tracking-tighter">Video Settings</h3>
+            <div className="flex items-center gap-2 mt-1">
+               <p className="text-[10px] text-gray-400 font-bold tracking-widest">Lesson Builder + AI Assistant</p>
+               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">
+                  <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">active</span>
+               </div>
+            </div>
           </div>
         </div>
         {onClose && (
@@ -250,82 +257,56 @@ export default function VideoUploader({ lessonId, courseId, onTranscribed, onClo
         )}
 
         {status !== 'done' && status !== 'uploading' && status !== 'transcribing' && (
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Mode toggle */}
-            <div className="flex p-2 space-x-2 bg-gray-50 border border-gray-100 rounded-[1.5rem]">
-              <button
-                type="button"
-                onClick={() => setMode('youtube')}
-                className={`flex-1 flex items-center justify-center gap-3 py-3.5 text-xs font-black  tracking-widest rounded-xl transition-all ${mode === 'youtube' ? 'bg-white shadow-xl text-gray-900 border border-gray-50' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                <Link2 size={16} /> Public Link
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('upload')}
-                className={`flex-1 flex items-center justify-center gap-3 py-3.5 text-xs font-black  tracking-widest rounded-xl transition-all ${mode === 'upload' ? 'bg-white shadow-xl text-gray-900 border border-gray-50' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                <Upload size={16} /> File Drive
-              </button>
-            </div>
-
-            {mode === 'youtube' ? (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="animate-in slide-in-from-bottom-2 duration-300">
-                <label className="block text-[10px] font-black text-gray-400  tracking-widest mb-3">Public Video Identity</label>
-                <div className="relative">
-                  <Link2 className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input
-                    type="url"
-                    placeholder="Link lesson to YouTube, Vimeo or AWS S3..."
-                    value={youtubeUrl}
-                    onChange={e => setYoutubeUrl(e.target.value)}
-                    className="w-full pl-14 pr-6 py-5 bg-gray-50/30 border border-gray-100 rounded-3xl text-sm font-bold text-gray-900 focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all shadow-inner"
-                  />
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest uppercase">Primary Master File</label>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-lg border border-blue-100">
+                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest">Pinnlab Secure Deploy</span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="animate-in slide-in-from-bottom-2 duration-300">
-                <label className="block text-[10px] font-black text-gray-400  tracking-widest mb-3">Primary Master File</label>
+                
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-100 rounded-[2.5rem] p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/20 transition-all group shadow-inner"
+                  className="border-2 border-dashed border-gray-100 rounded-[2.5rem] p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/20 transition-all group shadow-inner bg-white"
                 >
                   <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100 transition-colors">
                      <Upload className="text-gray-300 group-hover:text-blue-500 transition-all" size={32} />
                   </div>
                   {file ? (
                     <div>
-                      <p className="font-black text-gray-900  tracking-tighter text-lg mb-1">{file.name}</p>
-                      <p className="text-[10px] font-black text-gray-400  tracking-widest">Payload: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="font-black text-gray-900 tracking-tighter text-lg mb-1">{file.name}</p>
+                      <p className="text-[10px] font-black text-gray-400 tracking-widest">Payload: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   ) : (
                     <div>
-                      <p className="font-black text-gray-900  tracking-tighter text-lg mb-2">Deploy Local Master</p>
-                      <p className="text-[10px] font-black text-gray-400  tracking-widest">MP4, MOV or WEBM preferred</p>
+                      <p className="font-black text-gray-900 tracking-tighter text-lg mb-2">Deploy Local Master</p>
+                      <p className="text-[10px] font-black text-gray-400 tracking-widest">MP4, MOV or WEBM preferred</p>
                     </div>
                   )}
                 </div>
-                <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="video/*" 
+                  onChange={(e) => {
+                    const selectedFile = e.target.files?.[0];
+                    if (selectedFile) {
+                      setFile(selectedFile);
+                      // Start upload automatically
+                      handleSubmit(undefined, selectedFile);
+                    }
+                  }} 
+                  className="hidden" 
+                />
               </div>
-            )}
 
-            {/* AI Architecture info */}
-            <div className="flex items-center gap-4 p-6 bg-gray-900 rounded-[2rem] shadow-2xl shadow-gray-200 border border-gray-800">
-              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0">
-                 <Brain className="text-blue-400" size={24} />
+              <div className="pt-4 text-center">
+                 <p className="text-[10px] text-gray-300 font-bold tracking-widest leading-relaxed">
+                   By uploading via Pinnlab, your video is instantly transcribed <br /> and added to the course knowledge base.
+                 </p>
               </div>
-              <p className="text-xs text-white/70 font-medium leading-relaxed  tracking-widest">
-                Our <span className="text-blue-400 font-black">Neural Engine</span> will instantly map this content to the lesson's AI Knowledge Base after processing.
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full h-20 bg-blue-600 text-white font-black rounded-[2rem] hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200  tracking-[0.2em] text-sm flex items-center justify-center gap-3 active:scale-[0.98]"
-            >
-              <Sparkles size={20} className="text-blue-200" /> Start Transcription Engine
-            </button>
-          </form>
+          </div>
         )}
       </div>
     </div>

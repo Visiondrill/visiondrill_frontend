@@ -105,7 +105,7 @@ function RegisterPageContent() {
            <div className="space-y-4 mt-12">
               {(isInstructor ? [
                 "Reach 15,000+ global learners",
-                "Advanced AI architect tools"
+                "Built-in AI Assistant"
               ] : [
                 "Verified professional courses",
                 "Personalized learning paths"
@@ -130,9 +130,9 @@ function RegisterPageContent() {
                {isInstructor ? <Briefcase size={20} /> : <BookOpen size={20} />}
             </div>
             <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">
-               {isInstructor ? 'Mentor registration' : 'Account creation'}
+               {isInstructor ? 'Instructor registration' : 'Account creation'}
             </h2>
-            <p className="text-gray-400 font-medium italic text-xs">Credential initialization.</p>
+            <p className="text-gray-400 font-medium italic text-xs">Getting you ready.</p>
           </div>
 
           <form className="space-y-3" onSubmit={handleRegister}>
@@ -239,7 +239,7 @@ function RegisterPageContent() {
               {isLoading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
-                <>{isInstructor ? 'Activate core' : 'Create profile'} <ArrowLeft className="rotate-180" size={14} /></>
+                <>{isInstructor ? 'Create account' : 'Create profile'} <ArrowLeft className="rotate-180" size={14} /></>
               )}
             </button>
           </form>

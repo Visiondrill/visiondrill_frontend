@@ -59,7 +59,7 @@ function AICourseGenerator() {
     
     try {
       if (mode === 'curriculum') {
-        const systemPrompt = "You are a senior curriculum architect. Generate a course structure (Sections and Lesson titles) for the following topic. Return ONLY JSON format: [{ 'title': 'Section Name', 'lessons': ['Lesson 1', 'Lesson 2'] }]";
+        const systemPrompt = "You are an expert instructor. Generate a course structure (Sections and Lesson titles) for the following topic. Return ONLY JSON format: [{ 'title': 'Section Name', 'lessons': ['Lesson 1', 'Lesson 2'] }]";
         const response = await api.post('/engine/api/stream/sse', {
           message: `Topic: ${topic}. Audience: ${audience}. Create a 4-section curriculum.`,
           system_prompt: systemPrompt
@@ -157,7 +157,7 @@ function AICourseGenerator() {
                 <Brain size={32} />
               </div>
               <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-none">AI Asset <span className="text-blue-600 italic">Generator</span></h1>
-              <p className="text-gray-500 font-medium text-lg leading-relaxed">Choose your mode and let our AI architect build pedagogically sound assets in seconds.</p>
+              <p className="text-gray-500 font-medium text-lg leading-relaxed">Choose your mode and let our AI build high-quality lessons in seconds.</p>
             </div>
 
             <div className="flex bg-white p-2 rounded-2xl border border-gray-100 shadow-sm max-w-xs">
@@ -227,7 +227,7 @@ function AICourseGenerator() {
                   className="w-full h-20 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-3xl text-sm shadow-2xl shadow-blue-100 transition-all flex items-center justify-center gap-3"
                >
                   {isGenerating ? <Loader2 className="animate-spin" size={24} /> : <Zap size={24} />} 
-                  {isGenerating ? 'Architecting...' : mode === 'curriculum' ? 'Generate Curriculum' : 'Generate Quiz'}
+                  {isGenerating ? 'Building...' : mode === 'curriculum' ? 'Generate Curriculum' : 'Generate Quiz'}
                </Button>
             </form>
           </div>

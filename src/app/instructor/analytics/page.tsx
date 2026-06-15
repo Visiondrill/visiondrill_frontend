@@ -50,9 +50,9 @@ export default function InstructorAnalytics() {
              </div>
              <span className="text-xs text-gray-400 font-bold">• Last Sync: {new Date().toLocaleTimeString()}</span>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter leading-tight">
-             Performance <br /><span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent italic">Command Center.</span>
-          </h1>
+           <h1 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter leading-tight">
+              Performance <br /><span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent italic">Analytics Dashboard</span>
+           </h1>
         </div>
         
         <div className="flex items-center gap-3">
