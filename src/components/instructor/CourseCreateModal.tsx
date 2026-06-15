@@ -33,7 +33,7 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
   }, [isOpen]);
 
   const handleNext = () => {
-    if (step === 1 && !form.course_title) return;
+    if (step === 1 && (!form.course_title || !form.category_id)) return;
     setStep(prev => prev + 1);
   };
 

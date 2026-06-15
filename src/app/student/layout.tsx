@@ -34,6 +34,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { name: 'Dashboard', icon: LayoutDashboard, href: '/student' },
     { name: 'Inbox', icon: MessageSquare, href: '/student/messaging' },
     { name: 'Lesson', icon: BookOpen, href: '/student/courses' },
+    { name: 'Quizzes', icon: Trophy, href: '/student/quizzes' },
     { name: 'Analytics', icon: BarChart3, href: '/student/analytics' },
     { name: 'Group', icon: Users, href: '/student/cohorts' },
   ];

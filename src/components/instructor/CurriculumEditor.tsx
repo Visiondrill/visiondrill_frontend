@@ -108,10 +108,13 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
             ))}
           </SortableContext>
 
-          <div className="flex justify-center pt-4">
-            <Button onClick={handleAddSection} className="w-full md:w-auto px-10 h-14 shadow-xl shadow-blue-100 flex items-center justify-center gap-2">
-              <Plus size={18} /> Add Section
-            </Button>
+          <div className="pt-8">
+            <button 
+              onClick={handleAddSection}
+              className="w-full py-10 bg-gray-50/30 border-2 border-dashed border-gray-100 rounded-[2.5rem] flex items-center justify-center text-blue-600/70 font-black text-sm tracking-widest hover:border-blue-200 hover:bg-blue-50/50 hover:text-blue-600 transition-all gap-3 bg-white"
+            >
+              <Plus size={20} /> Add New Section
+            </button>
           </div>
         </div>
       </DndContext>
@@ -285,9 +288,9 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
             {!isAdding ? (
               <button 
                 onClick={() => setIsAdding(true)}
-                className="w-full h-12 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-400 font-bold text-xs  tracking-widest hover:border-blue-200 hover:text-blue-600 hover:bg-blue-50/50 transition-all gap-2"
+                className="w-full h-14 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-400 font-bold text-[10px] uppercase tracking-[0.2em] hover:border-blue-200 hover:text-blue-600 hover:bg-blue-50/50 transition-all gap-2"
               >
-                <Plus size={16} /> New Lesson
+                <Plus size={14} /> Add New Lecture
               </button>
             ) : (
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">

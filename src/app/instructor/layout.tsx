@@ -24,7 +24,7 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   const navItems = [
     { name: 'Dashboard', href: '/instructor', icon: LayoutDashboard },
     { name: 'Courses', href: '/instructor/courses', icon: BookOpen },
-    { name: 'Create quiz', href: '/instructor/quizzes/create', icon: Sparkles },
+    { name: 'Quizzes', href: '/instructor/quizzes', icon: Sparkles },
     { name: 'Student assets', href: '/instructor/students', icon: Users },
 
     { name: 'Analytics', href: '/instructor/analytics', icon: BarChart3 },
@@ -47,7 +47,7 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
         <nav className="flex-1 px-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/instructor');
             return (
               <Link
                 key={item.name}
@@ -68,7 +68,7 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
           <div className="pt-10">
             {utilityItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/instructor');
               return (
                 <Link
                   key={item.name}
