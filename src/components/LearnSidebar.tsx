@@ -42,13 +42,18 @@ export default function LearnSidebar({ sections, activeLessonId, onLessonSelect,
                 
                 const getIcon = () => {
                    if (isCompleted) return <CheckCircle size={16} className="text-emerald-500" />;
-                   if (isActive) return <PlayCircle size={16} className="text-blue-600" />;
+                   if (isActive) return <PlayCircle size={16} className="text-white" />;
                    
-                   switch(lesson.content?.lesson_type) {
-                     case 'quiz': return <HelpCircle size={15} className="text-gray-300" />;
-                     case 'text': return <FileText size={15} className="text-gray-300" />;
-                     default: return <Play size={15} className="text-gray-300" />;
-                   }
+                   if (lesson.lesson_type === 'quiz' || lesson.content?.lesson_type === 'quiz') return <HelpCircle size={15} className="text-gray-300" />;
+                   if (lesson.content?.document_url || lesson.content?.body) return <FileText size={15} className="text-gray-300" />;
+                   return <Play size={15} className="text-gray-300" />;
+                };
+
+                const getDescriptor = () => {
+                   if (lesson.lesson_type === 'quiz' || lesson.content?.lesson_type === 'quiz') return 'Knowledge Drill';
+                   if (lesson.content?.document_url) return 'Document';
+                   if (lesson.content?.body) return 'Reading Material';
+                   return 'Video Lecture';
                 };
 
                 return (
@@ -66,7 +71,7 @@ export default function LearnSidebar({ sections, activeLessonId, onLessonSelect,
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                          <span className={`text-[9px] font-bold  tracking-widest ${isActive ? 'text-blue-100/70' : 'text-gray-400'}`}>
-                            {lesson.content?.lesson_type || 'Video'} • 5m
+                            {getDescriptor()}{lesson.content?.video_url ? ' • 5m' : ''}
                          </span>
                       </div>
                     </div>

@@ -10,10 +10,15 @@ import {
   MessageCircle, 
   Share2,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Download,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import toast from 'react-hot-toast';
+
+const STORAGE_ROOT = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') || '';
 
 export default function StudentLessonPage() {
   const { slug, lessonId } = useParams();
@@ -39,12 +44,29 @@ export default function StudentLessonPage() {
     }
   };
 
+  const getDocumentUrl = (documentUrl: string | null): string | null => {
+    if (!documentUrl) return null;
+    if (documentUrl.startsWith('http')) return documentUrl;
+    return `${STORAGE_ROOT}/uploads/lessons/documents/${documentUrl}`;
+  };
+
+  const isDocumentPreviewable = (documentUrl: string | null): boolean => {
+    if (!documentUrl) return false;
+    const ext = documentUrl.split('.').pop()?.toLowerCase() || '';
+    return ['pdf', 'txt'].includes(ext);
+  };
+
   if (isLoading) return (
     <div className="p-20 flex flex-col items-center justify-center gap-4 text-gray-400">
        <Loader2 className="animate-spin" size={32} />
        <p className="font-semibold text-sm">Loading curriculum node...</p>
     </div>
   );
+
+  const documentUrl = lesson?.document_url || lesson?.content?.document_url || null;
+  const fullDocUrl = getDocumentUrl(documentUrl);
+  const hasResource = !!documentUrl;
+  const hasContent = !!lesson?.description || !!lesson?.content?.body;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
@@ -113,6 +135,9 @@ export default function StudentLessonPage() {
            }`}
          >
            Downloadable assets
+           {hasResource && (
+             <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full inline-block"></span>
+           )}
            {activeTab === 'resources' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-full" />}
          </button>
       </div>
@@ -120,11 +145,72 @@ export default function StudentLessonPage() {
       {/* Tab Content */}
       <div className="prose prose-blue max-w-none mb-20 text-gray-700 leading-relaxed">
          {activeTab === 'content' ? (
-           <ReactMarkdown>{lesson?.description || 'No detailed content provided for this module.'}</ReactMarkdown>
+            hasContent ? (
+              <ReactMarkdown>{lesson?.description || lesson?.content?.body || ''}</ReactMarkdown>
+            ) : (
+              <div className="py-12 text-center">
+                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText size={24} className="text-gray-300" />
+                 </div>
+                 <p className="text-gray-400 font-medium italic">No detailed content provided for this module.</p>
+              </div>
+            )
          ) : (
-           <div className="py-12 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
-              <p className="text-gray-400 font-medium italic">No auxiliary resources attached to this node.</p>
-           </div>
+            <div>
+              {hasResource ? (
+                <div className="space-y-6">
+                  <div className="p-8 bg-blue-50/30 border border-blue-100 rounded-[2rem]">
+                    <div className="flex items-start gap-5">
+                      <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <FileText className="text-blue-600" size={28} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-black text-gray-900 tracking-tight mb-2">
+                          {documentUrl.split('/').pop()}
+                        </h3>
+                        <p className="text-sm text-gray-500 font-medium mb-1">
+                          Reference document for this lesson
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-bold tracking-wider uppercase mb-6">
+                          {documentUrl.split('.').pop()?.toUpperCase()} Document
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <a
+                            href={fullDocUrl || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-black tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                          >
+                            {isDocumentPreviewable(documentUrl) ? (
+                              <><Eye size={16} /> Preview Document</>
+                            ) : (
+                              <><Download size={16} /> Download</>
+                            )}
+                          </a>
+                          <a
+                            href={fullDocUrl || '#'}
+                            download
+                            className="flex items-center gap-2 px-6 py-3 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-black tracking-widest hover:bg-blue-50 transition-all"
+                          >
+                            <Download size={16} /> Download
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-16 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Download size={24} className="text-gray-300" />
+                  </div>
+                  <p className="text-gray-400 font-medium italic">No auxiliary resources attached to this node.</p>
+                  <p className="text-[10px] text-gray-300 font-bold mt-2 tracking-widest uppercase">
+                    The instructor may add documents later
+                  </p>
+                </div>
+              )}
+            </div>
          )}
       </div>
     </div>

@@ -2,26 +2,64 @@
 
 import React, { useState, useRef } from 'react';
 import { api } from '@/lib/api';
-import { Save, Loader2, FileText, CheckCircle, AlertCircle, X, Paperclip } from 'lucide-react';
+import { Save, Loader2, FileText, CheckCircle, AlertCircle, X, Paperclip, Eye } from 'lucide-react';
 
 interface TextEditorProps {
   lessonId: number;
   courseId: number;
   initialBody?: string;
+  initialDocumentUrl?: string | null;
   onClose?: () => void;
   onSaved?: () => void;
 }
 
-export default function TextEditor({ lessonId, courseId, initialBody = '', onClose, onSaved }: TextEditorProps) {
+const ALLOWED_FILE_TYPES = ['pdf', 'doc', 'docx', 'txt'];
+const MAX_FILE_SIZE_MB = 20;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const STORAGE_ROOT = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') || '';
+
+export default function TextEditor({ lessonId, courseId, initialBody = '', initialDocumentUrl = null, onClose, onSaved }: TextEditorProps) {
   const [body, setBody] = useState(initialBody);
   const [file, setFile] = useState<File | null>(null);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(initialDocumentUrl);
   const [status, setStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) setFile(e.target.files[0]);
+    setValidationError(null);
+    if (e.target.files?.[0]) {
+      const selectedFile = e.target.files[0];
+      const error = validateFile(selectedFile);
+      if (error) {
+        setValidationError(error);
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      setFile(selectedFile);
+    }
+  };
+
+  const validateFile = (selectedFile: File): string | null => {
+    const ext = selectedFile.name.split('.').pop()?.toLowerCase() || '';
+    if (!ALLOWED_FILE_TYPES.includes(ext)) {
+      return `Invalid file type ".${ext}". Allowed types: PDF, DOC, DOCX, TXT.`;
+    }
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      return `File size (${(selectedFile.size / 1024 / 1024).toFixed(1)}MB) exceeds the ${MAX_FILE_SIZE_MB}MB limit.`;
+    }
+    return null;
+  };
+
+  const clearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFile(null);
+    setValidationError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSave = async () => {
@@ -35,34 +73,25 @@ export default function TextEditor({ lessonId, courseId, initialBody = '', onClo
     }
 
     try {
-      // The backend route is web route: /instructor/courses/{courseId}/curriculum/lectures/{lessonId}/text
-      // But we will access it via api route if available, or fallback to absolute path by removing api prefix.
       const response = await api.post(
         `/instructor/courses/${courseId}/curriculum/lectures/${lessonId}/text`, 
-        formData, 
-
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          // we use the baseURL trick: axios will prepend baseURL `/api`, but if we hack it... wait.
-        }
+        formData
       );
       
+      if (response.data?.data?.document_url) {
+        setDocumentUrl(response.data.data.document_url);
+      }
       setStatus('done');
       setStatusMessage('Text material saved successfully!');
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       onSaved?.();
       
-      // Auto close after 2s
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 2000);
-      
     } catch (err: any) {
-      // Actually, if it's a redirect, axios might follow it or return an error depending on CORS
       if (err.response?.status === 200) {
           setStatus('done');
           setStatusMessage('Text material saved successfully!');
           onSaved?.();
-          setTimeout(() => { if (onClose) onClose(); }, 2000);
           return;
       }
 
@@ -101,7 +130,17 @@ export default function TextEditor({ lessonId, courseId, initialBody = '', onClo
           </div>
         )}
 
-        {status === 'error' && (
+        {validationError && (
+          <div className="p-6 bg-red-50 border border-red-100 rounded-3xl flex items-start gap-4">
+            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={24} />
+            <div>
+              <p className="font-black text-red-800 text-sm mb-1 tracking-widest">Validation Error</p>
+              <p className="text-red-700/80 text-sm font-medium leading-relaxed">{validationError}</p>
+            </div>
+          </div>
+        )}
+
+        {status === 'error' && !validationError && (
           <div className="p-6 bg-red-50 border border-red-100 rounded-3xl flex items-start gap-4">
             <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={24} />
             <div>
@@ -123,19 +162,74 @@ export default function TextEditor({ lessonId, courseId, initialBody = '', onClo
 
         <div className="space-y-4">
            <label className="block text-[10px] font-black text-gray-400 tracking-widest uppercase">Attach Document (Optional)</label>
-           <div 
-             onClick={() => fileInputRef.current?.click()}
-             className="border-2 border-dashed border-gray-100 rounded-[2rem] p-8 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50/20 transition-all group flex flex-col items-center justify-center gap-3"
-           >
-              <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                 <Paperclip className="text-gray-400 group-hover:text-purple-600" size={20} />
-              </div>
-              {file ? (
-                 <p className="font-black text-gray-900 text-sm">{file.name}</p>
-              ) : (
-                 <p className="font-black text-gray-400 text-sm">Click to upload doc/pdf</p>
-              )}
-           </div>
+           
+           {/* Existing document preview */}
+           {!file && documentUrl && (
+             <div className="flex items-center justify-between p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <FileText className="text-blue-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-blue-900 line-clamp-1 max-w-[200px]">{documentUrl.split('/').pop()}</p>
+                    <p className="text-[10px] font-bold text-blue-500/70 tracking-wider mt-0.5">Uploaded document</p>
+                  </div>
+                </div>
+                <a 
+                  href={`${STORAGE_ROOT}/uploads/lessons/documents/${documentUrl}`}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  <Eye size={14} /> Preview
+                </a>
+             </div>
+           )}
+           
+           {/* New file selected */}
+           {file && (
+             <div className="flex items-center justify-between p-4 bg-purple-50/50 border border-purple-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <FileText className="text-purple-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-purple-900 line-clamp-1 max-w-[200px]">{file.name}</p>
+                    <p className="text-[10px] font-bold text-purple-500/70 tracking-wider mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <button onClick={clearFile} className="text-purple-400 hover:text-red-500 transition-colors p-1">
+                  <X size={16} />
+                </button>
+             </div>
+           )}
+           
+           {!file && !documentUrl && (
+             <div 
+               className="flex-grow border-2 border-dashed border-gray-100 rounded-3xl p-10 cursor-pointer hover:border-purple-400 hover:bg-purple-50/20 transition-all group"
+               onClick={() => fileInputRef.current?.click()}
+               onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+               onDrop={(e) => {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 if (e.dataTransfer.files?.[0]) {
+                   const droppedFile = e.dataTransfer.files[0];
+                   const error = validateFile(droppedFile);
+                   if (error) {
+                     setValidationError(error);
+                   } else {
+                     setFile(droppedFile);
+                   }
+                 }
+               }}
+             >
+                <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                   <Paperclip className="text-gray-400 group-hover:text-purple-600" size={20} />
+                </div>
+                <p className="font-black text-gray-400 text-sm">Click to upload doc/pdf</p>
+                <p className="text-[10px] font-medium text-gray-300">PDF, DOC, DOCX, TXT up to 20MB</p>
+             </div>
+           )}
            <input ref={fileInputRef} type="file" accept=".doc,.docx,.pdf,.txt" onChange={handleFileChange} className="hidden" />
         </div>
 

@@ -61,7 +61,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
         
         const newArray = arrayMove(items, oldIndex, newIndex);
         
-        // Push order to backend
         const payload = newArray.map((sec, idx) => ({ id: sec.id, sortOrder: idx + 1 }));
         api.put(`/instructor/courses/${courseId}/update-sections-order`, { sections: payload }).catch(err => {
             console.error("Failed to update section order", err);
@@ -159,7 +158,6 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
       
       setLessons(newArray);
 
-      // Save to backend
       try {
         const payload = newArray.map((lesson, idx) => ({ id: lesson.id, sortOrder: idx + 1 }));
         await api.put(`/instructor/courses/${courseId}/update-lessons-order`, { lessons: payload });
@@ -185,7 +183,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
         onDelete(section.id);
       } catch (error) {
         console.error("Failed to delete section", error);
-        onDelete(section.id); // optimistic
+        onDelete(section.id);
       }
     }
   };
@@ -199,7 +197,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
       };
       const response = await api.post(`/instructor/courses/${courseId}/sections/${section.id}/lessons`, { 
         title: (typeIcons as any)[type] || "New Lesson", 
-        lesson_type: type === 'quiz' ? 'quiz' : 'lecture' 
+        lesson_type: type
       });
       setLessons([...lessons, response.data]);
     } catch (err) {
@@ -211,7 +209,6 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
     <div ref={setNodeRef} style={style} className={`bg-white border ${isDragging ? 'border-blue-400 shadow-xl opacity-80' : 'border-gray-100 shadow-sm'} rounded-2xl overflow-hidden transition-shadow`}>
       <div className="bg-gray-50/50 p-4 flex items-center justify-between border-b border-gray-100">
         <div className="flex items-center flex-grow">
-          {/* Drag Handle */}
           <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 -ml-1 mr-2 hover:bg-gray-200 rounded">
             <GripVertical className="text-gray-400" size={20} />
           </div>
@@ -338,8 +335,13 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [showQuizEditor, setShowQuizEditor] = useState(false);
 
+  const hasVideo = !!lesson.content?.video_url;
+  const hasDocument = !!lesson.content?.document_url;
+  const hasBody = !!lesson.content?.body;
+
   const getTypeIcon = () => {
     if (lesson.lesson_type === 'quiz') return <HelpCircle size={16} className="text-orange-500" />;
+    if (lesson.lesson_type === 'text') return <FileText size={16} className="text-purple-500" />;
     return <Video size={16} className="text-blue-500" />;
   };
 
@@ -379,7 +381,8 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
             className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 cursor-pointer transition-colors"
             onClick={() => {
               if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
-              else setShowTextEditor(!showTextEditor);
+              else if (lesson.lesson_type === 'text') setShowTextEditor(!showTextEditor);
+              else setShowUploader(!showUploader);
             }}
           >
             {getTypeIcon()}
@@ -408,14 +411,24 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
                    className="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors cursor-pointer" 
                    onClick={() => {
                      if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
-                     else setShowTextEditor(!showTextEditor);
+                     else if (lesson.lesson_type === 'text') setShowTextEditor(!showTextEditor);
+                     else setShowUploader(!showUploader);
                    }}
                  >
                    {title}
                  </span>
-                {lesson.lesson_type === 'quiz' && (
-                  <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-2 py-0.5 rounded  tracking-widest">Quiz Attached</span>
-                )}
+                 {lesson.lesson_type === 'quiz' && (
+                   <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-2 py-0.5 rounded tracking-widest">Quiz Attached</span>
+                 )}
+                 {hasVideo && lesson.lesson_type !== 'quiz' && (
+                   <span className="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded tracking-widest">Video</span>
+                 )}
+                 {hasDocument && lesson.lesson_type !== 'quiz' && (
+                   <span className="text-[10px] font-black bg-purple-50 text-purple-600 px-2 py-0.5 rounded tracking-widest">Doc</span>
+                 )}
+                 {hasBody && !hasVideo && !hasDocument && lesson.lesson_type !== 'quiz' && (
+                   <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded tracking-widest">Text</span>
+                 )}
               </div>
           )}
         </div>
@@ -463,6 +476,7 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
           <VideoUploader
             lessonId={lesson.id}
             courseId={courseId}
+            initialVideoUrl={lesson.content?.video_url || null}
             onTranscribed={() => setShowUploader(false)}
             onClose={() => setShowUploader(false)}
           />
@@ -474,6 +488,8 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
           <TextEditor
             lessonId={lesson.id}
             courseId={courseId}
+            initialBody={lesson.content?.body || ''}
+            initialDocumentUrl={lesson.content?.document_url || null}
             onClose={() => setShowTextEditor(false)}
             onSaved={() => setShowTextEditor(false)}
           />

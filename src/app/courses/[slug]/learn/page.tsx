@@ -7,7 +7,7 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import { Section, Lesson, Course } from '@/types/curriculum';
 import LearnSidebar from '@/components/LearnSidebar';
 import AIAssistantSidebar from '@/components/AIAssistantSidebar';
-import { Loader2, Play, ChevronLeft, ChevronRight, Menu, Brain, Volume2, Maximize, Settings, FileText } from 'lucide-react';
+import { Loader2, Play, ChevronLeft, ChevronRight, Menu, Brain, Volume2, Maximize, Settings, FileText, Eye } from 'lucide-react';
 
 import Link from 'next/link';
 
@@ -59,6 +59,25 @@ function LearnPageContent() {
     };
     fetchCourse();
   }, [slug, searchParams]);
+
+  const allLessons = useMemo(() => {
+    if (!course) return [];
+    return course.sections.flatMap(s => s.lessons);
+  }, [course]);
+
+  const activeIndex = allLessons.findIndex(l => l.id === activeLessonId);
+
+  const handleNext = () => {
+    if (activeIndex < allLessons.length - 1) {
+      handleLessonChange(allLessons[activeIndex + 1].id);
+    }
+  };
+
+  const handlePrev = () => {
+    if (activeIndex > 0) {
+      handleLessonChange(allLessons[activeIndex - 1].id);
+    }
+  };
 
   const activeLesson = useMemo(() => {
     if (!course || !activeLessonId) return null;
@@ -199,53 +218,73 @@ function LearnPageContent() {
         </div>
 
         {/* Main Player View */}
-        <main className="flex-grow flex flex-col bg-gray-950 relative">
-           <div className="flex-grow flex items-center justify-center">
-             {activeLesson?.content?.content_type === 'video' ? (
-                <div className="w-full h-full max-h-[calc(100vh-12rem)] aspect-video bg-black relative group shadow-2xl">
-
-                   {/* Placeholder for real Video Player (e.g. Video.js or Youtube embed) */}
-                   {activeLesson?.content?.video_url?.includes('youtube.com') || activeLesson?.content?.video_url?.includes('youtu.be') ? (
-                      <iframe 
-                        src={`https://www.youtube.com/embed/${activeLesson?.content?.video_url?.split('v=')[1] || activeLesson?.content?.video_url?.split('/')?.pop() || ''}`}
-                        className="w-full h-full"
-                        allowFullScreen
-                      />
-                   ) : (
-                      <div className="w-full h-full">
-                        {activeLesson?.content?.video_url && (
-                          <video 
-                            src={activeLesson?.content?.video_url?.startsWith('http') ? activeLesson?.content?.video_url : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/videos/${activeLesson?.content?.video_url}`}
-                            controls 
-                            className="w-full h-full object-contain"
+         <main className="flex-grow flex flex-col bg-gray-950 relative overflow-y-auto">
+            <div className="flex-grow flex flex-col items-center justify-center py-12">
+              {activeLesson?.content?.video_url ? (
+                 <div className="w-full flex-shrink-0">
+                    <div className="w-full max-h-[calc(100vh-16rem)] aspect-video bg-black relative group shadow-2xl">
+                       {activeLesson.content.video_url.includes('youtube.com') || activeLesson.content.video_url.includes('youtu.be') ? (
+                          <iframe 
+                            src={`https://www.youtube.com/embed/${activeLesson.content.video_url.split('v=')[1] || activeLesson.content.video_url.split('/')?.pop() || ''}`}
+                            className="w-full h-full"
+                            allowFullScreen
                           />
+                       ) : (
+                          <div className="w-full h-full">
+                             <video 
+                               src={activeLesson.content.video_url.startsWith('http') ? activeLesson.content.video_url : `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')}/uploads/videos/${activeLesson.content.video_url}`}
+                               controls 
+                               className="w-full h-full object-contain"
+                             />
+                          </div>
+                       )}
+                       
+                       <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                             <Play className="text-white cursor-pointer" size={20} />
+                             <Volume2 className="text-white cursor-pointer" size={20} />
+                             <span className="text-xs text-white/80 font-bold  tracking-widest">00:00 / 12:45</span>
+                          </div>
+                          <div className="flex items-center gap-6">
+                             <Settings className="text-white cursor-pointer" size={20} />
+                             <Maximize className="text-white cursor-pointer" size={20} />
+                          </div>
+                       </div>
+                    </div>
 
-                        )}
-                      </div>
-
-                   )}
-                   
-                   {/* Player Overlay Controls (Visual Only) */}
-                   <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                         <Play className="text-white cursor-pointer" size={20} />
-                         <Volume2 className="text-white cursor-pointer" size={20} />
-                         <span className="text-xs text-white/80 font-bold  tracking-widest">00:00 / 12:45</span>
-                      </div>
-                      <div className="flex items-center gap-6">
-                         <Settings className="text-white cursor-pointer" size={20} />
-                         <Maximize className="text-white cursor-pointer" size={20} />
-                      </div>
-                   </div>
-                </div>
-             ) : activeLesson?.content?.lesson_type === 'quiz' ? (
-                <div className="max-w-2xl w-full bg-white rounded-[2rem] p-12 text-center shadow-2xl">
-                   <Brain className="mx-auto mb-6 text-blue-600" size={64} />
-                   <h2 className="text-2xl font-black text-gray-900  mb-4">{activeLesson.title}</h2>
-                   <p className="text-gray-500 font-medium mb-10 leading-relaxed">This lesson is an interactive quiz designed to test your knowledge of the previous concepts.</p>
-                   <button className="px-10 py-5 bg-blue-600 text-white font-black rounded-2xl  tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">Start Knowledge Drill</button>
-                </div>
-              ) : activeLesson?.content?.content_type === 'article' || activeLesson?.content?.body || activeLesson?.content?.document_url ? (
+                    {/* Resources for Video Lessons */}
+                    {activeLesson?.content?.document_url && (
+                       <div className="w-full max-w-5xl mx-auto px-8 py-12">
+                          <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 flex items-center justify-between">
+                             <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                                   <FileText className="text-blue-400" size={24} />
+                                </div>
+                                <div className="text-left">
+                                   <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Lesson Resource</p>
+                                   <p className="text-sm font-bold text-white/80">{activeLesson.content.document_url.split('/').pop()}</p>
+                                </div>
+                             </div>
+                             <a 
+                               href={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')}/uploads/lessons/documents/${activeLesson.content.document_url}`}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95 flex items-center gap-2"
+                             >
+                                <Eye size={14} /> Open in Browser
+                             </a>
+                          </div>
+                       </div>
+                    )}
+                 </div>
+              ) : activeLesson?.content?.lesson_type === 'quiz' ? (
+                 <div className="max-w-2xl w-full bg-white rounded-[2rem] p-12 text-center shadow-2xl">
+                    <Brain className="mx-auto mb-6 text-blue-600" size={64} />
+                    <h2 className="text-2xl font-black text-gray-900  mb-4">{activeLesson.title}</h2>
+                    <p className="text-gray-500 font-medium mb-10 leading-relaxed">This lesson is an interactive quiz designed to test your knowledge of the previous concepts.</p>
+                    <button className="px-10 py-5 bg-blue-600 text-white font-black rounded-2xl  tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">Start Knowledge Drill</button>
+                 </div>
+              ) : activeLesson?.content?.body || activeLesson?.content?.document_url ? (
                 <div className="max-w-4xl w-full h-[calc(100vh-8rem)] overflow-y-auto px-8 md:px-16 py-16 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl mt-8 animate-in fade-in slide-in-from-bottom-4">
                    <div className="mb-10 pb-10 border-b border-gray-50">
                       <div className="flex items-center gap-2 mb-4">
@@ -255,31 +294,40 @@ function LearnPageContent() {
                    </div>
 
                    {/* Main Body Text */}
-                   <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-700 min-h-[200px]" 
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeLesson?.content?.body) || 'No text content provided for this lesson.' }} 
-                   />
+                   {activeLesson?.content?.body && (
+                     <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-700 min-h-[100px] mb-12" 
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeLesson?.content?.body) }} 
+                     />
+                   )}
 
-                   {/* Attached Documents */}
+                   {/* PDF Hero / Document Preview */}
                    {activeLesson?.content?.document_url && (
-                      <div className="mt-16 p-8 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100">
-                               <FileText className="text-gray-400" size={28} />
+                      <div className="space-y-6">
+                         <div className="p-12 bg-gray-50 border border-gray-100 rounded-[3rem] flex flex-col items-center text-center gap-6">
+                            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-xl shadow-gray-200/50 border border-gray-50">
+                               <FileText className="text-blue-500" size={48} />
                             </div>
                             <div>
-                               <p className="text-[10px] font-black text-gray-400  tracking-widest uppercase mb-1">Attached Reference</p>
-                               <p className="text-sm font-bold text-gray-900 ">{activeLesson.content.document_url}</p>
+                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Primary Course Material</p>
+                               <h3 className="text-xl font-black text-gray-900 leading-tight mb-2">{activeLesson.content.document_url.split('/').pop()}</h3>
+                               <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto">This lesson contains a PDF document. Open it in your browser viewer to start reading.</p>
                             </div>
+                            <a 
+                              href={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')}/uploads/lessons/documents/${activeLesson.content.document_url}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-12 py-5 bg-gray-900 text-white rounded-2xl font-black text-xs tracking-widest hover:bg-black transition-all shadow-2xl active:scale-95 flex items-center gap-3"
+                            >
+                               <Eye size={18} className="text-blue-400" /> Open PDF in Browser Viewer
+                            </a>
+                            
+                            <p className="text-[10px] font-bold text-gray-300">Requires PDF support in browser</p>
                          </div>
-                         <a 
-                           href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/lessons/documents/${activeLesson.content.document_url}`} 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           className="px-6 py-3 bg-gray-900 text-white rounded-xl font-black text-[10px]  tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
-                         >
-                            Download Document
-                         </a>
                       </div>
+                   )}
+
+                   {!activeLesson?.content?.body && !activeLesson?.content?.document_url && (
+                      <p className="text-gray-400 font-medium italic">No text or document content provided for this lesson.</p>
                    )}
                 </div>
               ) : (
@@ -301,13 +349,21 @@ function LearnPageContent() {
               </button>
               
               <div className="flex items-center gap-4">
-                 <button className="flex items-center gap-2 px-6 py-2 bg-white/5 text-white/40 rounded-xl font-black  text-[10px] tracking-widest hover:bg-white/10 transition-all">
-                    <ChevronLeft size={16} /> Previous
-                 </button>
-                 <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-black  text-[10px] tracking-widest hover:bg-blue-700 transition-all">
-                    Next Lesson <ChevronRight size={16} />
-                 </button>
-              </div>
+                  <button 
+                    onClick={handlePrev}
+                    disabled={activeIndex <= 0}
+                    className="flex items-center gap-2 px-6 py-2 bg-white/5 text-white/40 rounded-xl font-black  text-[10px] tracking-widest hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                  >
+                     <ChevronLeft size={16} /> Previous
+                  </button>
+                  <button 
+                    onClick={handleNext}
+                    disabled={activeIndex >= allLessons.length - 1}
+                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-black  text-[10px] tracking-widest hover:bg-blue-700 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                  >
+                     Next Lesson <ChevronRight size={16} />
+                  </button>
+               </div>
 
               <div className="w-10"></div>
            </div>

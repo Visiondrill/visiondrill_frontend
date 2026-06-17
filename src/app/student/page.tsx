@@ -16,7 +16,9 @@ import {
   Loader2,
   CheckCircle2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  X,
+  ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -26,6 +28,9 @@ export default function StudentDashboardPreview() {
   const [popularCourses, setPopularCourses] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +54,17 @@ export default function StudentDashboardPreview() {
     fetchData();
   }, []);
 
+  // Derive unique levels from enrolled courses
+  const allLevels = Array.from(new Set(courses.map((c: any) => c.level).filter(Boolean)));
+
+  // Filter courses by search query and selected level
+  const displayedCourses = courses.filter((course: any) => {
+    const matchesSearch = !searchQuery || 
+      course.course_title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLevel = !selectedLevel || course.level === selectedLevel;
+    return matchesSearch && matchesLevel;
+  });
+
   if (isLoading) return <StudentDashboardSkeleton />;
 
   return (
@@ -62,12 +78,54 @@ export default function StudentDashboardPreview() {
              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
              <input 
                placeholder="Search your course here..." 
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
                className="w-full bg-white border border-gray-100 rounded-[2rem] pl-16 pr-6 py-4 text-sm font-medium focus:border-blue-200 outline-none transition-all shadow-sm shadow-gray-50"
              />
           </div>
-          <button className="p-4 bg-white border border-gray-100 rounded-[1.2rem] text-gray-400 hover:text-blue-600 transition-all shadow-sm">
-             <Filter size={20} />
-          </button>
+          <div className="relative">
+             <button 
+               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+               className={`p-4 bg-white border rounded-[1.2rem] transition-all shadow-sm ${
+                 selectedLevel ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-gray-400 border-gray-100 hover:text-blue-600'
+               }`}
+             >
+                <Filter size={20} />
+             </button>
+             {showFilterDropdown && (
+               <div className="absolute right-0 top-14 w-56 bg-white border border-gray-100 rounded-[1.5rem] shadow-xl shadow-gray-200/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center justify-between px-4 py-2">
+                     <span className="text-[9px] font-black text-gray-400 tracking-[0.2em] uppercase">Filter by Level</span>
+                     <button onClick={() => setShowFilterDropdown(false)} className="text-gray-300 hover:text-gray-600">
+                        <X size={14} />
+                     </button>
+                  </div>
+                  <div className="h-px bg-gray-50 my-1" />
+                  <button
+                    onClick={() => { setSelectedLevel(null); setShowFilterDropdown(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                      !selectedLevel ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    All Levels
+                  </button>
+                  {allLevels.map((level: string) => (
+                    <button
+                      key={level}
+                      onClick={() => { setSelectedLevel(level); setShowFilterDropdown(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold capitalize transition-all ${
+                        selectedLevel === level ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+               </div>
+             )}
+             {showFilterDropdown && (
+               <div className="fixed inset-0 z-40" onClick={() => setShowFilterDropdown(false)} />
+             )}
+          </div>
         </div>
 
         {/* Hero Banner — only shown when user has enrolled courses */}
@@ -135,53 +193,57 @@ export default function StudentDashboardPreview() {
               </div>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-              {courses.slice(0, 3).map((course) => (
-                <Link key={course.id} href={`/student/learn/${course.slug}`}>
-                  <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all cursor-pointer h-full flex flex-col">
-                     <div className="aspect-[4/3] bg-gray-100 relative shrink-0">
-                        <Image src={course.image || '/course-placeholder.jpg'} alt={course.course_title} fill className="object-cover" />
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-xl text-gray-400">
-                           <Star size={14} />
-                        </div>
-                     </div>
-                      <div className="p-6 flex-1 flex flex-col justify-between">
-                        <div>
-                           <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg tracking-widest uppercase">
-                             {(course.sections?.[0]?.title || 'CORE MODULE').split(' ')[0]}
-                           </span>
-                           <h4 className="text-sm font-black text-gray-900 mt-4 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 underline-offset-4 group-hover:underline">
-                             {course.course_title}
-                           </h4>
-                        </div>
-                        <div>
-                           <div className="h-1.5 w-full bg-gray-100 rounded-full mt-6 overflow-hidden">
-                              <div 
-                                className="h-full bg-blue-600 transition-all duration-1000" 
-                                style={{ width: `${course.progress_percentage || 0}%` }} 
-                              />
-                           </div>
-                           <div className="mt-6 flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                 <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white shadow-sm" />
-                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-black text-gray-900 truncate">{course.author?.first_name || 'Expert Instructor'}</p>
-                                    <p className="text-[9px] font-bold text-gray-400 tracking-widest">Operator</p>
-                                 </div>
-                              </div>
-                              <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-600 translate-x-0 group-hover:translate-x-1 transition-all" />
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                </Link>
-              ))}
-              {courses.length === 0 && (
-                <div className="col-span-3 py-12 text-center text-gray-400 font-medium italic">
-                   No active enrollments found. Explore our marketplace to start learning.
-                </div>
-              )}
-           </div>
+           {displayedCourses.length > 0 ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                {displayedCourses.slice(0, 3).map((course) => (
+                  <Link key={course.id} href={`/student/learn/${course.slug}`}>
+                    <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all cursor-pointer h-full flex flex-col">
+                       <div className="aspect-[4/3] bg-gray-100 relative shrink-0">
+                          <Image src={course.image || '/course-placeholder.jpg'} alt={course.course_title} fill className="object-cover" />
+                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-xl text-gray-400">
+                             <Star size={14} />
+                          </div>
+                       </div>
+                        <div className="p-6 flex-1 flex flex-col justify-between">
+                          <div>
+                             <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg tracking-widest uppercase">
+                               {(course.sections?.[0]?.title || 'CORE MODULE').split(' ')[0]}
+                             </span>
+                             <h4 className="text-sm font-black text-gray-900 mt-4 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 underline-offset-4 group-hover:underline">
+                               {course.course_title}
+                             </h4>
+                          </div>
+                          <div>
+                             <div className="h-1.5 w-full bg-gray-100 rounded-full mt-6 overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-600 transition-all duration-1000" 
+                                  style={{ width: `${course.progress_percentage || 0}%` }} 
+                                />
+                             </div>
+                             <div className="mt-6 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                   <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white shadow-sm" />
+                                   <div className="min-w-0">
+                                      <p className="text-[10px] font-black text-gray-900 truncate">{course.author?.first_name || 'Expert Instructor'}</p>
+                                      <p className="text-[9px] font-bold text-gray-400 tracking-widest">Operator</p>
+                                   </div>
+                                </div>
+                                <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-600 translate-x-0 group-hover:translate-x-1 transition-all" />
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                  </Link>
+                ))}
+             </div>
+           ) : (
+             <div className="col-span-3 py-12 text-center text-gray-400 font-medium italic">
+                {searchQuery || selectedLevel 
+                  ? 'No courses match your current search or filter.' 
+                  : 'No active enrollments found. Explore our marketplace to start learning.'
+                }
+             </div>
+           )}
         </section>
 
          {popularCourses.length > 0 && (

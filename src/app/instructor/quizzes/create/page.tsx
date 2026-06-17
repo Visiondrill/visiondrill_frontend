@@ -178,7 +178,7 @@ export default function CreateCommandQuiz() {
         only_leader_submit: config.only_leader_submit,
         passing_score_percent: config.passing_score_percent,
         max_attempts: config.max_attempts,
-        questions: questions.map(q => ({
+        questions: hasStartedQuestions ? questions.map(q => ({
           question: q.question,
           quiz_question_type_id: q.quiz_question_type_id,
           points: q.points || 10,
@@ -186,16 +186,14 @@ export default function CreateCommandQuiz() {
             answer: a.answer,
             is_right: a.is_right,
           })) : [],
-        })),
+        })) : [],
       };
 
       const res = await api.post('/quiz-info/create', payload);
       const quizId = res.data.quiz?.id || res.data.id;
       setCreatedQuizId(quizId);
-      setSuccessMsg('Quiz created successfully! You can now distribute it.');
-      setCurrentStep('Distribute');
-      // Automatically fetch students for distribution
-      fetchStudents();
+      setSuccessMsg('Quiz configuration saved! Now, lets build your questions.');
+      setCurrentStep('Questions');
     } catch (err: any) {
       setError(getErrorMessage(err) || 'Failed to create quiz');
     } finally {
@@ -225,7 +223,7 @@ export default function CreateCommandQuiz() {
     setIsSubmitting(true);
     setError(null);
     try {
-      // Update quiz configuration via PUT endpoint
+      // Update quiz configuration AND questions via PUT endpoint
       await api.put(`/quiz-info/${createdQuizId}`, {
         heading: config.heading,
         description: config.description || '',
@@ -236,8 +234,18 @@ export default function CreateCommandQuiz() {
         passing_score_percent: config.passing_score_percent,
         max_attempts: config.max_attempts,
         status: 'active',
+        questions: questions.map(q => ({
+          question: q.question,
+          quiz_question_type_id: q.quiz_question_type_id,
+          points: q.points || 10,
+          answers: q.quiz_question_type_id === 1 ? q.answers.map(a => ({
+            answer: a.answer,
+            is_right: a.is_right,
+          })) : [],
+        })),
       });
-      setSuccessMsg('Quiz updated successfully!');
+      setSuccessMsg('Questions saved successfully! Now you can distribute the drill.');
+      setCurrentStep('Distribute');
     } catch (err: any) {
       setError(getErrorMessage(err) || 'Failed to update quiz');
     } finally {
