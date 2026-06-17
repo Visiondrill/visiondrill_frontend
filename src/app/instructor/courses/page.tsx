@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import CourseAvatar from '@/components/CourseAvatar';
+
 
 interface Course {
   id: number;
@@ -157,13 +159,12 @@ export default function InstructorCourses() {
               className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:shadow-2xl hover:shadow-blue-50 transition-all group cursor-pointer flex flex-col h-full"
             >
                <div className="relative h-44 bg-gray-100 overflow-hidden">
-                  {course.thumbnail ? (
-                     <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
-                  ) : (
-                     <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                        <BookOpen size={32} className="text-gray-200" />
-                     </div>
-                  )}
+                  <CourseAvatar
+                    title={course.course_title}
+                    thumbnail={course.thumbnail}
+                    className="w-full h-full group-hover:scale-110 transition-transform duration-700"
+                    imgClassName="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
                   <div className="absolute top-4 left-4 flex gap-2">
                     {course.status === 'PUBLISHED' ? (
                       <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[9px] font-black tracking-widest uppercase shadow-lg shadow-emerald-200 flex items-center gap-1.5 animate-in fade-in duration-500">

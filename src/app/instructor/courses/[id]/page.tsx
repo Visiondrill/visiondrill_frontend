@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { api, getCsrfCookie } from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -20,6 +20,8 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import Button from '@/components/Button';
+import CourseAvatar from '@/components/CourseAvatar';
+
 
 export default function InstructorCourseDetail() {
   const { id } = useParams();
@@ -29,6 +31,8 @@ export default function InstructorCourseDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [studentsLoading, setStudentsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit states
   const [editTitle, setEditTitle] = useState('');
@@ -88,6 +92,25 @@ export default function InstructorCourseDetail() {
       setCourse({ ...course, status: res.data.status });
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to change status");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await api.post(`/instructor/courses/${id}/upload-image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setCourse((prev: any) => ({ ...prev, thumbnail: res.data.thumbnail }));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Image upload failed');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -198,13 +221,33 @@ export default function InstructorCourseDetail() {
                   </div>
 
                   <div className="bg-gray-50 rounded-[2.5rem] p-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 group transition-all hover:border-blue-200">
-                     <div className="w-32 h-32 bg-white rounded-[2rem] shadow-xl shadow-gray-100 flex items-center justify-center text-gray-300 group-hover:text-blue-500 transition-colors mb-6 overflow-hidden">
-                        {course.thumbnail ? <img src={course.thumbnail} className="w-full h-full object-cover" /> : <Globe size={48} />}
-                     </div>
-                     <button className="text-xs font-semibold text-blue-600 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-600 hover:text-white transition-all">
-                        Update Media
-                     </button>
-                  </div>
+                      <div className="w-32 h-32 bg-white rounded-[2rem] shadow-xl shadow-gray-100 overflow-hidden mb-6">
+                         <CourseAvatar
+                           title={course.course_title}
+                           thumbnail={course.thumbnail}
+                           className="w-full h-full"
+                           imgClassName="w-full h-full object-cover"
+                         />
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="text-xs font-semibold text-blue-600 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {uploadingImage ? (
+                          <><Loader2 size={14} className="animate-spin" /> Uploading...</>
+                        ) : (
+                          course.thumbnail ? 'Change Thumbnail' : 'Upload Thumbnail'
+                        )}
+                      </button>
+                   </div>
                </div>
             </div>
 

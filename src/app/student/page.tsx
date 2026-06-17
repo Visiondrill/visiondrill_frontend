@@ -21,6 +21,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
+import CourseAvatar from '@/components/CourseAvatar';
+
 
 export default function StudentDashboardPreview() {
   const [user, setUser] = useState<any>(null);
@@ -248,41 +250,69 @@ export default function StudentDashboardPreview() {
 
          {popularCourses.length > 0 && (
            <section>
-              <div className="flex items-center justify-between mb-8">
-                 <h3 className="text-xl font-black text-gray-900 tracking-tight">Suggested courses</h3>
+              <div className="flex items-center justify-between mb-6">
+                 <div>
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight">Suggested For You</h3>
+                    <p className="text-xs text-gray-400 font-medium mt-0.5">Handpicked based on trending topics</p>
+                 </div>
                  <div className="flex gap-2">
-                    <button className="p-2 border border-gray-100 rounded-xl text-gray-300 hover:text-blue-600 transition-all"><ChevronLeft size={20} /></button>
-                    <button className="p-2 border border-blue-100 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all"><ChevronRight size={20} /></button>
+                    <button className="p-2 border border-gray-100 rounded-xl text-gray-300 hover:text-blue-600 transition-all"><ChevronLeft size={18} /></button>
+                    <button className="p-2 border border-blue-100 bg-blue-50 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all"><ChevronRight size={18} /></button>
                  </div>
               </div>
               
-              <div className="flex gap-8 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory -mx-1 px-1">
                  {popularCourses.map((course) => (
-                   <Link key={course.id} href={`/courses/${course.slug}`}>
-                     <div className="min-w-[300px] md:min-w-[340px] bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-gray-100/50 transition-all snap-start h-full flex flex-col">
-                        <div className="aspect-video bg-gray-100 relative shrink-0">
-                           <Image 
-                             src={course.image || `https://images.unsplash.com/photo-${1500000000000 + (course.id * 100000)}?q=80&w=800&auto=format&fit=crop`} 
-                             alt={course.course_title} 
-                             fill 
-                             className="object-cover group-hover:scale-105 transition-all duration-500" 
+                   <Link key={course.id} href={`/courses/${course.slug}`} className="snap-start shrink-0 w-[240px]">
+                     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden group hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                        {/* Thumbnail */}
+                        <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                           <CourseAvatar
+                             title={course.course_title}
+                             thumbnail={course.thumbnail || course.image || null}
+                             className="w-full h-full group-hover:scale-110 transition-transform duration-500"
+                             imgClassName="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                            />
-                           <div className="absolute top-4 left-4 bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-lg  tracking-widest uppercase">Popular</div>
+                           {course.level && (
+                             <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-md tracking-widest uppercase">
+                               {course.level}
+                             </div>
+                           )}
                         </div>
-                        <div className="p-8 pb-10 flex-1 flex flex-col justify-between">
-                           <h4 className="text-lg font-black text-gray-900 leading-tight group-hover:text-blue-600 transition-colors mb-4 line-clamp-2">
+                        {/* Body */}
+                        <div className="p-4 flex flex-col gap-2.5 flex-1">
+                           <h4 className="text-xs font-black text-gray-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
                              {course.course_title}
                            </h4>
-                           <div className="flex items-center justify-between mt-auto">
-                              <div className="flex items-center gap-3">
-                                 <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm">
-                                    {course.author?.first_name?.[0] || 'T'}
-                                 </div>
-                                 <span className="text-xs font-bold text-gray-400">{course.author?.first_name || 'Expert'}</span>
+                           {/* Author */}
+                           <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[9px] font-black shrink-0">
+                                {((course.author?.first_name || course.author?.fullname || 'T')[0]).toUpperCase()}
                               </div>
-                              <p className="text-lg font-black text-gray-900 font-sans tracking-tight">
+                              <span className="text-[10px] font-semibold text-gray-400 truncate">
+                                {course.author?.first_name || course.author?.fullname || 'Expert Instructor'}
+                              </span>
+                           </div>
+                           {/* Stars */}
+                           <div className="flex items-center gap-1">
+                              <div className="flex gap-0.5">
+                                {[1,2,3,4,5].map(s => (
+                                  <svg key={s} className="w-2.5 h-2.5 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                ))}
+                              </div>
+                              <span className="text-[10px] font-bold text-amber-600">4.8</span>
+                              <span className="text-[9px] text-gray-300 font-medium">(2.4k)</span>
+                           </div>
+                           {/* Price */}
+                           <div className="mt-auto pt-2.5 border-t border-gray-50 flex items-center justify-between">
+                              <span className={`text-sm font-black tracking-tight ${course.price > 0 ? 'text-gray-900' : 'text-emerald-600'}`}>
                                 {course.price > 0 ? `KES ${Number(course.price).toLocaleString()}` : 'FREE'}
-                              </p>
+                              </span>
+                              {course.price > 0 && (
+                                <span className="text-[10px] font-medium text-gray-300 line-through">
+                                  KES {Math.round(Number(course.price) * 1.4).toLocaleString()}
+                                </span>
+                              )}
                            </div>
                         </div>
                      </div>

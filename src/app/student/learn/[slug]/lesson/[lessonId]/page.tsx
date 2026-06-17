@@ -70,9 +70,26 @@ export default function StudentLessonPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
-      {/* Video / Resource Player */}
-      <div className="aspect-video bg-gray-900 rounded-[2rem] overflow-hidden shadow-2xl relative group mb-10">
-         {lesson?.video_url ? (
+      {/* Video / Resource / Quiz Player */}
+      <div className="aspect-video bg-gray-900 rounded-[2rem] overflow-hidden shadow-2xl relative group mb-10 transition-all">
+         {lesson?.lesson_type === 'quiz' || lesson?.quiz ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-blue-900 text-white gap-8 p-10 text-center">
+               <div className="w-24 h-24 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/30 shadow-2xl animate-pulse">
+                  <Award size={40} className="text-blue-400" />
+               </div>
+               <div className="max-w-md">
+                  <h2 className="text-3xl font-black tracking-tight mb-2 italic">Knowledge Drill Ready</h2>
+                  <p className="text-sm font-medium text-blue-100/60 mb-8">
+                    Validate your mastery of this module. Complete the assessment to verify your performance and earn progress.
+                  </p>
+                  <Link href={`/student/quizzes/${lesson?.quiz?.id || lesson?.quiz_id}/take`}>
+                    <button className="px-10 h-16 bg-blue-600 text-white rounded-2xl font-black text-xs tracking-[0.2em] uppercase shadow-2xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all">
+                       Begin Assessment
+                    </button>
+                  </Link>
+               </div>
+            </div>
+         ) : lesson?.video_url ? (
             <video 
               src={lesson.video_url} 
               controls 

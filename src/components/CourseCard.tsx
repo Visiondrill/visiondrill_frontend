@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Bookmark, Eye, Star, Heart } from 'lucide-react';
+import CourseAvatar from '@/components/CourseAvatar';
+
 
 interface Author { picture: string; fullname: string; }
 interface Course {
@@ -34,11 +36,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     <div className="flex flex-col bg-white rounded-[32px] border border-gray-100 hover:border-blue-100 hover:shadow-2xl hover:shadow-blue-200/40 transition-all duration-500 cursor-pointer group overflow-hidden h-full">
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
         <Link href={`/course/${course.slug}`}>
-          <img
-            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
-            src={course.thumbnail}
-            alt={course.course_title}
-            loading="lazy"
+          <CourseAvatar
+            title={course.course_title}
+            thumbnail={course.thumbnail}
+            className="w-full h-full group-hover:scale-105 transition-transform duration-700"
+            imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
         </Link>
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
