@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { 
   Play, 
   FileText, 
