@@ -91,7 +91,6 @@ export default function InstructorDashboard() {
       {/* 2. Right Column: System Performance (Sticky) */}
       <aside className="w-full lg:w-80 xl:w-96 space-y-10 shrink-0 lg:sticky lg:top-10 h-fit">
           
-
           {/* Revenue Velocity Graph Strip */}
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
              <div className="flex items-center justify-between mb-8">

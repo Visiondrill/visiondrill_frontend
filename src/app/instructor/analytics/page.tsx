@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { 
-  BarChart3, Users, BookOpen, Target, TrendingUp, TrendingDown, Clock, 
-  ArrowUpRight, ArrowDownRight, Globe, Filter, Download, Zap, Sparkles
+  BarChart3, Users, BookOpen, Target, TrendingUp, TrendingDown, 
+  Globe, Filter, Download
 } from 'lucide-react';
 
 export default function InstructorAnalytics() {
@@ -51,7 +51,7 @@ export default function InstructorAnalytics() {
              <span className="text-xs text-gray-400 font-bold">• Last Sync: {new Date().toLocaleTimeString()}</span>
           </div>
            <h1 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tighter leading-tight">
-              Performance <br /><span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent italic">Analytics Dashboard</span>
+              Performance
            </h1>
         </div>
         
@@ -104,6 +104,22 @@ export default function InstructorAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
+        {/* Revenue Velocity Graph Strip */}
+        <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+           <div className="flex items-center justify-between mb-8">
+               <h4 className="text-sm font-black text-gray-900  tracking-widest">Revenue</h4>
+              <TrendingUp size={16} className="text-emerald-500" />
+           </div>
+           <div className="flex items-end justify-between gap-2 h-32">
+              {(analytics?.velocity || [30, 45, 35, 70, 60, 90, 80]).slice(-7).map((h: number, i: number) => (
+                <div key={i} className="flex-1 bg-gray-50 rounded-t-lg group relative cursor-pointer flex flex-col justify-end overflow-hidden">
+                   <div className="w-full bg-blue-600 opacity-20 group-hover:opacity-100 transition-opacity" style={{ height: `${Math.max(10, (h / (Math.max(...(analytics?.velocity || [100])) || 1)) * 100)}%` }} />
+                </div>
+              ))}
+           </div>
+           <p className="text-[10px] text-center text-gray-400 font-bold mt-6">Week-over-week performance index</p>
+        </div>
+
         {/* Engagement Velocity Chart */}
         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm relative overflow-hidden group">
            <div className="absolute top-0 right-0 p-40 bg-blue-50/20 blur-[120px] rounded-full -mr-20 -mt-20 group-hover:bg-blue-100/30 transition-colors duration-1000"></div>

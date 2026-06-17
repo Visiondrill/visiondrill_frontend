@@ -26,7 +26,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
     { name: 'Courses', href: '/instructor/courses', icon: BookOpen },
     { name: 'Quizzes', href: '/instructor/quizzes', icon: Sparkles },
     { name: 'Student assets', href: '/instructor/students', icon: Users },
-
     { name: 'Analytics', href: '/instructor/analytics', icon: BarChart3 },
     { name: 'Inbox', href: '/instructor/messages', icon: MessageSquare },
   ];

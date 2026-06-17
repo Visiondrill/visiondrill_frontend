@@ -70,30 +70,29 @@ export default function StudentDashboardPreview() {
           </button>
         </div>
 
-        {/* Hero Banner (Compacted to save space) */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-6 md:px-10 md:py-8 text-white relative overflow-hidden shadow-2xl shadow-blue-100 min-h-[240px] flex items-center">
-           <div className="absolute top-0 right-0 p-32 bg-white/10 blur-[60px] rounded-full -mr-24 -mt-24"></div>
-           <div className="absolute bottom-0 left-0 p-24 bg-indigo-500/20 blur-[60px] rounded-full -ml-16 -mb-16"></div>
-           <div className="relative z-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-8">
-              <div className="max-w-md">
-                 <p className="text-[9px] font-black  tracking-[0.3em] mb-2 text-blue-100 opacity-80">
-                   {courses.length > 0 ? `Resume: ${courses[0].course_title}` : 'Online course'}
-                 </p>
-                 <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight mb-6">
-                   {courses.length > 0 ? 'Pick up where you left off' : 'Sharpen your skills with professional curricula'}
-                 </h1>
-                 
-                 <Link href={courses.length > 0 ? `/student/learn/${courses[0].slug}` : '/student/courses'}>
-                    <button className="flex items-center gap-3 px-6 py-2.5 bg-gray-900 text-white text-[10px] font-black rounded-full hover:scale-105 active:scale-95 transition-all  tracking-[0.2em]">
-                       Join now <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center ml-1"><Play size={8} fill="white" /></div>
-                    </button>
-                 </Link>
-              </div>
+        {/* Hero Banner — only shown when user has enrolled courses */}
+        {courses.length > 0 && (
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-6 md:px-10 md:py-8 text-white relative overflow-hidden shadow-2xl shadow-blue-100 min-h-[240px] flex items-center">
+             <div className="absolute top-0 right-0 p-32 bg-white/10 blur-[60px] rounded-full -mr-24 -mt-24"></div>
+             <div className="absolute bottom-0 left-0 p-24 bg-indigo-500/20 blur-[60px] rounded-full -ml-16 -mb-16"></div>
+             <div className="relative z-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="max-w-md">
+                   <p className="text-[9px] font-black tracking-[0.3em] mb-2 text-blue-100 opacity-80">
+                     Resume: {courses[0].course_title}
+                   </p>
+                   <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight mb-6">
+                     Pick up where you left off
+                   </h1>
+                   <Link href={`/student/learn/${courses[0].slug}`}>
+                      <button className="flex items-center gap-3 px-6 py-2.5 bg-gray-900 text-white text-[10px] font-black rounded-full hover:scale-105 active:scale-95 transition-all tracking-[0.2em]">
+                         Resume <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center ml-1"><Play size={8} fill="white" /></div>
+                      </button>
+                   </Link>
+                </div>
 
-              {courses.length > 0 && (
                 <div className="w-full md:w-64 space-y-2.5">
                    <div className="flex justify-between items-end">
-                      <span className="text-[9px] font-black  tracking-widest text-blue-200">Session progress</span>
+                      <span className="text-[9px] font-black tracking-widest text-blue-200">Session progress</span>
                       <span className="text-lg font-black font-sans leading-none">45%</span>
                    </div>
                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
@@ -103,9 +102,9 @@ export default function StudentDashboardPreview() {
                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> 12 lessons remaining
                    </p>
                 </div>
-              )}
-           </div>
-        </div>
+             </div>
+          </div>
+        )}
 
         {/* Progress Strip */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
