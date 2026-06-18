@@ -144,6 +144,12 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
   const [title, setTitle] = useState(section.title);
   const [lessons, setLessons] = useState<Lesson[]>(section.lessons || []);
 
+  useEffect(() => {
+    if (section.lessons) {
+      setLessons(section.lessons);
+    }
+  }, [section.lessons]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -199,9 +205,20 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
         title: (typeIcons as any)[type] || "New Lesson", 
         lesson_type: type
       });
-      setLessons([...lessons, response.data]);
-    } catch (err) {
-      console.error("Failed to add lesson", err);
+      
+      // Handle both flat and nested data structures
+      const newLesson = response.data.data || response.data;
+      
+      // Ensure the lesson has the correct type for local UI state
+      if (newLesson && !newLesson.lesson_type) {
+        newLesson.lesson_type = type;
+      }
+
+      setLessons([...lessons, newLesson]);
+      setIsAdding(false);
+    } catch (error) {
+      console.error("Failed to add lesson", error);
+      setIsAdding(false);
     }
   };
 
@@ -291,13 +308,13 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
               </button>
             ) : (
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                 <button onClick={() => { handleAddLesson('video'); setIsAdding(false); }} className="flex-1 h-12 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
+                 <button onClick={() => handleAddLesson('video')} className="flex-1 h-12 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all">
                     <Video size={14} /> Video
                  </button>
-                 <button onClick={() => { handleAddLesson('text'); setIsAdding(false); }} className="flex-1 h-12 bg-purple-50 text-purple-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-purple-100 hover:bg-purple-600 hover:text-white transition-all">
+                 <button onClick={() => handleAddLesson('text')} className="flex-1 h-12 bg-purple-50 text-purple-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-purple-100 hover:bg-purple-600 hover:text-white transition-all">
                     <FileText size={14} /> Text
                  </button>
-                 <button onClick={() => { handleAddLesson('quiz'); setIsAdding(false); }} className="flex-1 h-12 bg-orange-50 text-orange-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-orange-100 hover:bg-orange-600 hover:text-white transition-all">
+                 <button onClick={() => handleAddLesson('quiz')} className="flex-1 h-12 bg-orange-50 text-orange-600 rounded-xl font-black text-[10px]  tracking-widest flex items-center justify-center gap-2 border border-orange-100 hover:bg-orange-600 hover:text-white transition-all">
                     <HelpCircle size={14} /> Quiz
                  </button>
                  <button onClick={() => setIsAdding(false)} className="w-12 h-12 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-all">
