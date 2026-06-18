@@ -79,7 +79,7 @@ const InstructorCurriculumPage = () => {
                         <Globe size={18} className="text-emerald-500" /> Publish
                      </button>
                  </Link>
-                 <Link href={`/courses/${course.slug}`}>
+                 <Link href={`/courses/${course.slug}/learn`}>
                     <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
                        <Eye size={18} className="text-blue-400" /> Preview
                     </button>

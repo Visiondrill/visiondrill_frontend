@@ -75,7 +75,16 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
     const newTitle = "New Section";
     try {
       const response = await api.post(`/instructor/courses/${courseId}/sections`, { title: newTitle });
-      setSections([...sections, { ...response.data, lessons: [] }]);
+      
+      // Extract section data from common Laravel response patterns
+      const sectionData = response.data.data || response.data.section || response.data;
+      
+      if (!sectionData.id) {
+         console.error("API response missing section ID", response.data);
+         return;
+      }
+
+      setSections([...sections, { ...sectionData, lessons: [] }]);
     } catch (error) {
       console.error("Failed to add section", error);
     }
@@ -195,19 +204,28 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
   };
 
   const handleAddLesson = async (type: string = 'video') => {
+    // Ensure we have a valid section ID
+    const sectionId = section.id || (section as any).data?.id;
+    if (!sectionId) {
+      console.error("Cannot add lesson: Missing section ID", section);
+      return;
+    }
+
     try {
       const typeIcons = {
         video: "Video Lecture",
         text: "Reference Material",
         quiz: "Lesson Quiz"
       };
-      const response = await api.post(`/instructor/courses/${courseId}/sections/${section.id}/lessons`, { 
+      
+      const response = await api.post(`/instructor/courses/${courseId}/sections/${sectionId}/lessons`, { 
         title: (typeIcons as any)[type] || "New Lesson", 
-        lesson_type: type
+        lesson_type: type,
+        section_id: sectionId
       });
       
-      // Handle both flat and nested data structures
-      const newLesson = response.data.data || response.data;
+      // Handle both flat and nested data structures (Laravel Resource vs Model)
+      const newLesson = response.data.data || response.data.lesson || response.data;
       
       // Ensure the lesson has the correct type for local UI state
       if (newLesson && !newLesson.lesson_type) {

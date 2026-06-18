@@ -17,7 +17,12 @@ import {
   ChevronRight,
   TrendingUp,
   Settings as SettingsIcon,
-  ShieldCheck
+  ShieldCheck,
+  Video,
+  Search,
+  Sparkles,
+  Mail,
+  Clock
 } from 'lucide-react';
 import Button from '@/components/Button';
 import CourseAvatar from '@/components/CourseAvatar';
@@ -28,49 +33,68 @@ export default function InstructorCourseDetail() {
   const router = useRouter();
   const [course, setCourse] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [studentsLoading, setStudentsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Edit states
-  const [editTitle, setEditTitle] = useState('');
-  const [editPrice, setEditPrice] = useState('');
-  const [editLevel, setEditLevel] = useState('');
+  // Expanded Edit states
+  const [form, setForm] = useState({
+    course_title: '',
+    subtitle: '',
+    description: '',
+    price: '',
+    level: 'beginner',
+    category_id: '',
+    type: 'public',
+    meta_title: '',
+    meta_tags: '',
+    meta_description: ''
+  });
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchInitialData = async () => {
       try {
         await getCsrfCookie();
-        const [courseRes, studentsRes] = await Promise.all([
+        const [courseRes, studentsRes, catRes] = await Promise.all([
           api.get(`/courses/${id}`),
-          api.get(`/instructor/courses/${id}/students`),
-          getCsrfCookie()
+          api.get(`/instructor/courses/${id}/students`).catch(() => ({ data: { students: [] } })),
+          api.get('/instructor/categories').catch(() => ({ data: [] }))
         ]);
+        
         const data = courseRes.data;
         setCourse(data);
-        setEditTitle(data.course_title);
-        setEditPrice((data.price / 100).toString());
-        setEditLevel(data.level || 'beginner');
+        setCategories(catRes.data);
+        setForm({
+          course_title: data.course_title || '',
+          subtitle: data.subtitle || '',
+          description: data.description || '',
+          price: (data.price / 100).toString() || '0',
+          level: data.level || 'beginner',
+          category_id: data.category_id?.toString() || '',
+          type: data.type || 'public',
+          meta_title: data.meta_title || '',
+          meta_tags: data.meta_tags || '',
+          meta_description: data.meta_description || ''
+        });
         setStudents(studentsRes.data.students || []);
       } catch (err) {
-        console.error('Failed to fetch course details', err);
+        console.error('Failed to fetch data', err);
       } finally {
         setIsLoading(false);
-        setStudentsLoading(false);
       }
     };
-    fetchCourse();
+    fetchInitialData();
   }, [id]);
 
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
       await api.put(`/instructor/courses/${id}`, {
-        course_title: editTitle,
-        price: parseFloat(editPrice) * 100, // Convert back to cents
-        level: editLevel
+        ...form,
+        price: parseFloat(form.price) * 100, // Convert to cents
+        category_id: form.category_id ? parseInt(form.category_id) : null
       });
       // Refresh local course state
       const courseRes = await api.get(`/courses/${id}`);
@@ -82,16 +106,20 @@ export default function InstructorCourseDetail() {
     }
   };
 
-  const handlePublishToggle = async () => {
+  const handleSubmitForReview = async () => {
     if (!course) return;
-    const endpoint = course.status === 'PUBLISHED'
-      ? `/instructor/courses/${id}/unpublish`
-      : `/instructor/courses/${id}/publish`;
+    if (!isReadyToPublish) {
+      alert("Please complete the course blueprint before submitting for review.");
+      return;
+    }
+    
     try {
-      const res = await api.post(endpoint);
-      setCourse({ ...course, status: res.data.status });
+      // Use existing IN_REVIEW status from model
+      const res = await api.post(`/instructor/courses/${id}/publish`);
+      setCourse({ ...course, status: 'IN_REVIEW' });
+      alert("Your course has been submitted for admin review!");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to change status");
+      alert(err.response?.data?.message || "Failed to submit for review");
     }
   };
 
@@ -137,203 +165,330 @@ export default function InstructorCourseDetail() {
   if (!course) return <div className="min-h-screen flex items-center justify-center text-red-500 font-bold">Course not found.</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <nav className="h-20 border-b border-gray-100 flex items-center justify-between px-8 bg-white sticky top-0 z-50">
+    <div className="min-h-screen bg-[#FDFDFF]">
+      <nav className="h-20 border-b border-gray-100 flex items-center justify-between px-8 bg-white sticky top-0 z-[60] shadow-sm">
         <div className="flex items-center gap-4">
-          <Link href="/instructor/courses" className="p-2 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors text-gray-400">
+          <Link href="/instructor/courses" className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all text-gray-400">
             <ChevronLeft size={20} />
           </Link>
           <div>
             <h1 className="text-sm font-black text-gray-900 tracking-tight leading-none">{course.course_title}</h1>
-            <p className="text-xs text-gray-400 font-black mt-1">Course Management Control</p>
+            <p className="text-[10px] text-gray-400 font-black mt-1 uppercase tracking-widest leading-none">Course Control Center</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Link 
+            href={`/courses/${course.slug}`} 
+            target="_blank"
+            className="flex items-center gap-2 px-6 h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all"
+          >
+            <BookOpen size={14} /> Preview
+          </Link>
+
           <button
-            onClick={handlePublishToggle}
-            className={`px-6 py-3 rounded-2xl font-black text-xs transition-all ${
-              course.status === 'PUBLISHED'
-                ? 'bg-gray-900 text-white hover:bg-black shadow-xl shadow-gray-200'
-                : isReadyToPublish 
-                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-xl shadow-green-100'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            onClick={handleSubmitForReview}
+            disabled={course.status === 'PUBLISHED' || course.status === 'IN_REVIEW'}
+            className={`px-8 h-12 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 ${
+              course.status === 'PUBLISHED' 
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'
+                : course.status === 'IN_REVIEW'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
+                  : isReadyToPublish
+                    ? 'bg-gray-900 text-white hover:bg-black shadow-xl shadow-gray-200'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-100'
             }`}
           >
-            {course.status === 'PUBLISHED' ? 'Unpublish Course' : 'Publish Course'}
+            {course.status === 'PUBLISHED' ? <><Globe size={14} /> Course Live</> : 
+             course.status === 'IN_REVIEW' ? <><Clock size={14} /> Under Review</> : 
+             <><Sparkles size={14} /> Submit for Review</>}
           </button>
-          <button onClick={handleDelete} className="p-3 rounded-xl border border-gray-100 text-gray-400 hover:text-red-600 hover:border-red-100 hover:bg-red-50 transition-all">
-            <Trash2 size={20} />
+          
+          <button onClick={handleDelete} className="p-3 hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all border border-transparent hover:border-red-100 rounded-2xl">
+            <Trash2 size={18} />
           </button>
         </div>
       </nav>
 
       <main className="max-w-7xl mx-auto px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Main Form & Stats */}
-          <div className="lg:col-span-3 space-y-8">
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-12 bg-blue-500/5 blur-3xl rounded-full -mr-20 -mt-20"></div>
-               <div className="relative z-10 flex items-center gap-3 mb-8">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
-                     <SettingsIcon size={24} />
+          {/* Main Context Pane */}
+          <div className="lg:col-span-8 space-y-10">
+            
+            {/* Box 1: Details */}
+            <SectionBox title="DETAILS | CHANGE INFORMATION ABOUT YOUR COURSE" icon={<SettingsIcon size={20} />}>
+               <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Category</label>
+                       <select 
+                          value={form.category_id}
+                          onChange={e => setForm({...form, category_id: e.target.value})}
+                          className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all appearance-none"
+                       >
+                          <option value="">Select a category...</option>
+                          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                       </select>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Name</label>
+                       <input 
+                          type="text" 
+                          value={form.course_title}
+                          onChange={e => setForm({...form, course_title: e.target.value})}
+                          className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                       />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-black text-gray-900">Configuration</h3>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Subtitle</label>
+                    <input 
+                        type="text" 
+                        value={form.subtitle}
+                        onChange={e => setForm({...form, subtitle: e.target.value})}
+                        placeholder="e.g. Master the art of photography in 30 days..."
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Level</label>
+                       <select 
+                          value={form.level}
+                          onChange={e => setForm({...form, level: e.target.value})}
+                          className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all appearance-none"
+                       >
+                          <option value="beginner">Beginner</option>
+                          <option value="intermediate">Intermediate</option>
+                          <option value="advanced">Advanced</option>
+                       </select>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Type</label>
+                       <select 
+                          value={form.type}
+                          onChange={e => setForm({...form, type: e.target.value})}
+                          className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all appearance-none"
+                       >
+                          <option value="public">Public (Earn Money)</option>
+                          <option value="private">Private (Invite Only)</option>
+                       </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">What students will learn?</label>
+                    <textarea 
+                        rows={6}
+                        value={form.description}
+                        onChange={e => setForm({...form, description: e.target.value})}
+                        className="w-full px-6 py-6 bg-gray-50 border border-gray-100 rounded-[2rem] font-medium text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all leading-relaxed"
+                        placeholder="Describe the outcomes and requirements..."
+                    />
+                  </div>
+
+                  <div className="space-y-2 max-w-xs">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Course Price</label>
+                    <div className="relative">
+                       <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-black text-sm">$</span>
+                       <input 
+                          type="number" 
+                          value={form.price}
+                          onChange={e => setForm({...form, price: e.target.value})}
+                          className="w-full pl-12 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-black text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                       />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                     <Button onClick={handleUpdate} isLoading={isSaving} className="px-10 h-14 bg-gray-950 hover:bg-black text-white text-[10px] font-black tracking-widest uppercase rounded-2xl">Save Changes</Button>
+                  </div>
                </div>
-               
-               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div className="space-y-6">
-                     <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-400 ml-2 block">Course Title</label>
-                        <input 
-                           type="text" 
-                           value={editTitle}
-                           onChange={e => setEditTitle(e.target.value)}
-                           className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
+            </SectionBox>
+
+            {/* Box 2: SEO */}
+            <SectionBox title="SEO | IMPROVE THE SEARCH ENGINE FRIENDLINESS OF YOUR COURSE PAGE" icon={<Globe size={20} />}>
+               <div className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
+                    <input 
+                        type="text" 
+                        value={form.meta_title}
+                        onChange={e => setForm({...form, meta_title: e.target.value})}
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                        placeholder="Enter meta title..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Meta Tags</label>
+                    <input 
+                        type="text" 
+                        value={form.meta_tags}
+                        onChange={e => setForm({...form, meta_tags: e.target.value})}
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                        placeholder="Enter meta tags..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Meta Description</label>
+                    <textarea 
+                        rows={3}
+                        value={form.meta_description}
+                        onChange={e => setForm({...form, meta_description: e.target.value})}
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-medium text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                        placeholder="Enter meta description..."
+                    />
+                  </div>
+                  <div className="flex justify-end pt-4">
+                     <Button onClick={handleUpdate} isLoading={isSaving} className="px-10 h-14 bg-gray-950 hover:bg-black text-white text-[10px] font-black tracking-widest uppercase rounded-2xl">Save SEO Settings</Button>
+                  </div>
+               </div>
+            </SectionBox>
+
+            {/* Box 3: Branding */}
+            <SectionBox title="BRANDING" icon={<Sparkles size={20} />}>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Course Preview Video</label>
+                     <div className="aspect-video bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] flex flex-col items-center justify-center text-center p-8 group hover:border-blue-200 transition-all cursor-pointer">
+                        <Video className="text-gray-200 group-hover:text-blue-500 mb-4 transition-colors" size={48} />
+                        <p className="text-[10px] font-black text-gray-400 leading-relaxed tracking-widest">DRAG OR DROP <span className="text-blue-600">BROWSE</span></p>
+                        <p className="text-[8px] font-bold text-gray-300 mt-2">Unlimited Size</p>
+                     </div>
+                  </div>
+                  <div className="space-y-4">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Course Thumbnail Image</label>
+                     <div className="relative group">
+                        <div className="aspect-video rounded-[2rem] overflow-hidden border border-gray-100 bg-gray-50 shadow-inner">
+                           <CourseAvatar
+                              title={course.course_title}
+                              thumbnail={course.thumbnail}
+                              className="w-full h-full"
+                              imgClassName="w-full h-full object-cover"
+                           />
+                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[2rem]">
+                              <button 
+                                 onClick={() => fileInputRef.current?.click()}
+                                 className="px-6 py-2 bg-white text-gray-900 rounded-full font-black text-[10px] tracking-widest uppercase shadow-xl active:scale-95 transition-all"
+                              >
+                                 Update Image
+                              </button>
+                           </div>
+                        </div>
+                        <input
+                           ref={fileInputRef}
+                           type="file"
+                           className="hidden"
+                           onChange={handleImageUpload}
+                           accept="image/*"
                         />
                      </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                           <label className="text-xs font-medium text-gray-400 ml-2 block">Price (USD)</label>
-                           <div className="relative">
-                              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</div>
-                              <input 
-                                 type="number" 
-                                 value={editPrice}
-                                 onChange={e => setEditPrice(e.target.value)}
-                                 className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
-                              />
-                           </div>
-                        </div>
-                        <div className="space-y-1">
-                           <label className="text-xs font-medium text-gray-400 ml-2 block">Level</label>
-                           <select 
-                              value={editLevel}
-                              onChange={e => setEditLevel(e.target.value)}
-                              className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all appearance-none"
-                           >
-                              <option value="beginner">Beginner</option>
-                              <option value="intermediate">Intermediate</option>
-                              <option value="advanced">Advanced</option>
-                           </select>
-                        </div>
+                     <p className="text-[9px] font-bold text-gray-400 text-center tracking-widest">Recommended size: 1280x720 (16:9)</p>
+                  </div>
+               </div>
+            </SectionBox>
+
+            {/* Box 4: Co-Authors */}
+            <SectionBox title="[ CO-AUTHORS ] INVITE CO-AUTHORS FOR THIS COURSE" icon={<Users size={20} />}>
+               <div className="space-y-8">
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email</label>
+                     <div className="relative">
+                        <input 
+                           type="email" 
+                           placeholder="Enter email address. You can add multiple emails by pressing enter"
+                           className="w-full px-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                        />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
                      </div>
-                     <Button onClick={handleUpdate} isLoading={isSaving} className="w-full h-14 bg-gray-900 hover:bg-black text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2">
-                         Save Configuration
-                     </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Existing Co-authors</span>
+                     <div className="bg-gray-50/50 rounded-2xl border border-gray-50 p-8 text-center text-[10px] font-bold text-gray-300 tracking-widest">
+                        NO OTHER MAN IS PART TO THIS COURSE FOR YET
+                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-[2.5rem] p-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 group transition-all hover:border-blue-200">
-                      <div className="w-32 h-32 bg-white rounded-[2rem] shadow-xl shadow-gray-100 overflow-hidden mb-6">
-                         <CourseAvatar
-                           title={course.course_title}
-                           thumbnail={course.thumbnail}
-                           className="w-full h-full"
-                           imgClassName="w-full h-full object-cover"
-                         />
-                      </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingImage}
-                        className="text-xs font-semibold text-blue-600 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50 flex items-center gap-2"
-                      >
-                        {uploadingImage ? (
-                          <><Loader2 size={14} className="animate-spin" /> Uploading...</>
-                        ) : (
-                          course.thumbnail ? 'Change Thumbnail' : 'Upload Thumbnail'
-                        )}
-                      </button>
-                   </div>
+                  <div className="flex justify-end">
+                     <button className="px-8 h-12 border border-blue-100 text-blue-600 bg-blue-50/50 hover:bg-blue-600 hover:text-white rounded-xl font-black text-[10px] tracking-widest uppercase transition-all">Send Invitation</button>
+                  </div>
                </div>
-            </div>
-
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm">
-               <div className="flex items-center justify-between mb-10">
-                  <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
-                     <Layout size={24} className="text-purple-600" /> Curriculum Blueprint
-                  </h3>
-                  <Link href={`/instructor/courses/${id}/curriculum`}>
-                     <Button className="px-6 h-12 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white text-xs font-black rounded-xl transition-all shadow-none">Manage Modules</Button>
-                  </Link>
-               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(course.sections || []).map((s: any, idx: number) => (
-                     <div key={s.id} className="p-6 bg-gray-50/50 rounded-3xl border border-gray-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-purple-50 hover:border-purple-100 transition-all">
-                        <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center font-black text-xs text-gray-900 shadow-sm">{idx + 1}</div>
-                           <div>
-                              <h5 className="font-black text-gray-900 tracking-tight text-sm truncate max-w-[150px]">{s.title}</h5>
-                              <p className="text-xs font-medium text-gray-400">{s.lessons?.length || 0} Lessons</p>
-                           </div>
-                        </div>
-                        <ChevronRight size={16} className="text-gray-200 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
-                     </div>
-                  ))}
-                  {(!course.sections || course.sections.length === 0) && (
-                     <div className="col-span-2 py-12 text-center text-gray-300 font-black text-xs border-2 border-dashed border-gray-50 rounded-3xl">
-                        Design your first module
-                     </div>
-                  )}
-               </div>
-            </div>
+            </SectionBox>
           </div>
 
-          {/* Checklist & Students */}
-          <div className="space-y-8">
-             <div className="bg-white border border-gray-100 rounded-[3rem] p-8 shadow-sm">
-                <h3 className="text-xs font-medium text-gray-400 mb-8 flex items-center gap-2">
-                   <ShieldCheck size={14} className="text-green-500" /> Quality Control
+          {/* Checklist Pane */}
+          <div className="lg:col-span-4 space-y-8">
+             <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-10 flex items-center gap-3">
+                   <ShieldCheck size={16} className="text-emerald-500" /> Quality Assurance
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-8">
                    {checklist.map(item => (
-                      <div key={item.id} className="flex items-center gap-4">
-                         <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${item.completed ? 'bg-green-500 text-white shadow-lg shadow-green-100' : 'border-2 border-gray-50 text-transparent'}`}>
-                            {item.completed && <CheckCircle size={14} />}
+                      <div key={item.id} className="flex items-center gap-4 group">
+                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-50/50' : 'bg-gray-50 border border-gray-100 text-transparent'}`}>
+                            {item.completed && <CheckCircle size={16} />}
                          </div>
-                         <span className={`text-xs font-black tracking-tight ${item.completed ? 'text-gray-900' : 'text-gray-300'}`}>{item.label}</span>
+                         <div className="flex flex-col">
+                            <span className={`text-[11px] font-black tracking-tight ${item.completed ? 'text-gray-900 line-through opacity-40' : 'text-gray-900'}`}>{item.label}</span>
+                            {!item.completed && <Link href={item.id === 2 || item.id === 3 ? `/instructor/courses/${id}/curriculum` : '#'} className="text-[8px] font-black text-blue-600 uppercase tracking-widest mt-0.5 hover:underline decoration-2 underline-offset-4">Fix issue <ChevronRight size={8} className="inline" /></Link>}
+                         </div>
                       </div>
                    ))}
                 </div>
-                {!isReadyToPublish && (
-                   <div className="mt-10 p-6 bg-orange-50/50 rounded-[2rem] border border-orange-100">
-                      <p className="text-xs font-black text-orange-700 leading-relaxed">
-                         Course is currently hidden from enrollment. Please complete the blueprint.
-                      </p>
-                   </div>
-                )}
+                
+                <div className={`mt-12 p-6 rounded-[2rem] border transition-all ${isReadyToPublish ? 'bg-emerald-50 border-emerald-100' : 'bg-orange-50 border-orange-100'}`}>
+                   <p className={`text-[10px] font-black leading-relaxed tracking-tight ${isReadyToPublish ? 'text-emerald-700' : 'text-orange-700'}`}>
+                      {isReadyToPublish 
+                        ? "Course blueprint meets all quality standards. Ready for review." 
+                        : "Your course is currently in draft mode. Complete all requirements to submit for review."}
+                   </p>
+                </div>
              </div>
 
-             <div className="bg-white border border-gray-100 rounded-[3rem] p-8 shadow-sm">
-                <h3 className="text-xs font-medium text-gray-400 mb-8 flex items-center justify-between">
-                   <span className="flex items-center gap-2"> <TrendingUp size={14} className="text-purple-500" /> Global Roster</span>
-                   <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full">{students.length}</span>
+             <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-10 flex items-center justify-between">
+                   <span className="flex items-center gap-3"> <TrendingUp size={16} className="text-blue-500" /> Active Roster</span>
+                   <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full">{students.length}</span>
                 </h3>
-                <div className="space-y-5 max-h-[400px] overflow-y-auto no-scrollbar">
+                <div className="space-y-4">
                    {students.map((s: any) => (
-                      <div key={s.id} className="flex items-center gap-4 group">
-                         <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                      <div key={s.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-2xl border border-transparent hover:border-blue-100 hover:bg-white transition-all cursor-default">
+                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-sm text-gray-900 shadow-sm">
                             {s.name[0]}
                          </div>
                          <div className="min-w-0">
-                            <p className="text-xs font-black text-gray-900 truncate tracking-tight">{s.name}</p>
-                            <p className="text-xs font-medium text-gray-400 truncate">{s.email}</p>
+                            <p className="text-[11px] font-black text-gray-900 truncate tracking-tight">{s.name}</p>
+                            <p className="text-[9px] font-medium text-gray-400 truncate tracking-tight">{s.email}</p>
                          </div>
                       </div>
                    ))}
-                   {students.length === 0 && <p className="text-center py-12 text-xs font-medium text-gray-300 italic">Awaiting first enrollment</p>}
+                   {students.length === 0 && <p className="text-center py-10 text-[10px] font-black text-gray-300 italic tracking-[0.2em] uppercase">No active students yet</p>}
                 </div>
              </div>
           </div>
-
         </div>
       </main>
+
+      <footer className="max-w-7xl mx-auto px-8 py-12 border-t border-gray-100">
+         <p className="text-[10px] font-black text-gray-300 text-center tracking-[0.3em] uppercase">2026 Powered By — Visiondrill</p>
+      </footer>
     </div>
   );
+}
+
+function SectionBox({ title, icon, children }: { title: string, icon: React.ReactNode, children: React.ReactNode }) {
+   return (
+      <div className="bg-white border border-gray-100 rounded-[3rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-blue-50/50 transition-all duration-700">
+         <div className="bg-blue-600 px-10 py-5 flex items-center gap-4">
+            <div className="text-white opacity-80">{icon}</div>
+            <h3 className="text-[10px] font-black text-white tracking-[0.2em] uppercase leading-none">{title}</h3>
+         </div>
+         <div className="p-10">
+            {children}
+         </div>
+      </div>
+   );
 }

@@ -53,6 +53,8 @@ interface Course {
     short_description: string;
     long_description: string;
   };
+  price?: number;
+  user_id: number;
   sections: Section[];
 }
 
@@ -65,9 +67,14 @@ const CourseDetailPage = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
   const [ratingStats, setRatingStats] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
+    // Get user from local storage or auth context
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
+
     const fetchCourse = async () => {
       try {
         const response = await api.get(`/courses/${slug}`);
@@ -91,6 +98,8 @@ const CourseDetailPage = () => {
     };
     fetchCourse();
   }, [slug]);
+
+  const isOwner = user && course && (parseInt(user.id) === parseInt(course.user_id.toString()));
 
   const toggleSection = (id: number) => {
     setExpandedSections(prev => 
@@ -183,8 +192,17 @@ const CourseDetailPage = () => {
                     </div>
 
                     <div className="space-y-3 mb-8">
-                       <Button onClick={() => setShowPaymentModal(true)} className="w-full h-16 text-xs font-black  tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100">Unlock Mastery Now</Button>
-                       <button className="w-full h-16 text-xs font-black  tracking-[0.2em] rounded-2xl border border-gray-100 hover:bg-gray-50 transition-all">Share Path</button>
+                       {isOwner ? (
+                          <Button 
+                             onClick={() => router.push(`/courses/${course.slug}/lesson/${course.sections[0]?.lessons[0]?.id}`)} 
+                             className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100 bg-emerald-600 hover:bg-emerald-700"
+                          >
+                             Go to Course (Instructor)
+                          </Button>
+                       ) : (
+                          <Button onClick={() => setShowPaymentModal(true)} className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100">Unlock Mastery Now</Button>
+                       )}
+                       <button className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl border border-gray-100 hover:bg-gray-50 transition-all">Share Path</button>
                     </div>
 
                     <div className="space-y-4">
