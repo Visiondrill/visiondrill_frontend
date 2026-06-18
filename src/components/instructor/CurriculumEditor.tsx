@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Section, Lesson } from '@/types/curriculum';
 import VideoUploader from '@/components/instructor/VideoUploader';
