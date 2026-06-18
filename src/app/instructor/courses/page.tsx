@@ -190,7 +190,7 @@ export default function InstructorCourses() {
                        {course.course_title}
                     </h3>
                     <p className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
-                      {course.price > 0 ? `KES ${course.price}` : 'FREE'}
+                      {course.price > 0 ? `$${course.price}` : 'FREE'}
                     </p>
                   </div>
                   

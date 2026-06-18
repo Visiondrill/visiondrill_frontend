@@ -195,12 +195,15 @@ export default function InstructorCourseDetail() {
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                            <label className="text-xs font-medium text-gray-400 ml-2 block">Price (USD)</label>
-                           <input 
-                              type="number" 
-                              value={editPrice}
-                              onChange={e => setEditPrice(e.target.value)}
-                              className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
-                           />
+                           <div className="relative">
+                              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</div>
+                              <input 
+                                 type="number" 
+                                 value={editPrice}
+                                 onChange={e => setEditPrice(e.target.value)}
+                                 className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
+                              />
+                           </div>
                         </div>
                         <div className="space-y-1">
                            <label className="text-xs font-medium text-gray-400 ml-2 block">Level</label>

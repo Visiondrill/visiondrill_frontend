@@ -124,13 +124,16 @@ export default function CourseCreateModal({ isOpen, onClose, onSubmit, isCreatin
                 <div className="space-y-6">
                   <div className="group">
                     <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-3">Amount</label>
-                    <input
-                      type="number"
-                      placeholder="0 for free course..."
-                      value={form.price}
-                      onChange={e => setForm({ ...form, price: e.target.value })}
-                      className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-8 focus:ring-blue-50 focus:border-blue-200 transition-all"
-                    />
+                    <div className="relative">
+                      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</div>
+                      <input
+                        type="number"
+                        placeholder="0 for free course..."
+                        value={form.price}
+                        onChange={e => setForm({ ...form, price: e.target.value })}
+                        className="w-full pl-12 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-8 focus:ring-blue-50 focus:border-blue-200 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-4">

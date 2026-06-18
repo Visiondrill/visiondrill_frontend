@@ -306,11 +306,11 @@ export default function StudentDashboardPreview() {
                            {/* Price */}
                            <div className="mt-auto pt-2.5 border-t border-gray-50 flex items-center justify-between">
                               <span className={`text-sm font-black tracking-tight ${course.price > 0 ? 'text-gray-900' : 'text-emerald-600'}`}>
-                                {course.price > 0 ? `KES ${Number(course.price).toLocaleString()}` : 'FREE'}
+                                {course.price > 0 ? `$${Number(course.price).toLocaleString()}` : 'FREE'}
                               </span>
                               {course.price > 0 && (
                                 <span className="text-[10px] font-medium text-gray-300 line-through">
-                                  KES {Math.round(Number(course.price) * 1.4).toLocaleString()}
+                                  $ {Math.round(Number(course.price) * 1.4).toLocaleString()}
                                 </span>
                               )}
                            </div>

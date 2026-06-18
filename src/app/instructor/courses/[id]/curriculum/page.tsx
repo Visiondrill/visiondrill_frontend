@@ -63,8 +63,7 @@ const InstructorCurriculumPage = () => {
                   <ChevronLeft size={24} className="text-gray-900" />
                 </Link>
                 <div>
-                   <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-black bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100">Course Architect</span>
+                    <div className="flex items-center gap-2 mb-2">
                       {course.status === 'PUBLISHED' && <span className="text-xs font-black bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full border border-blue-100">Live</span>}
                    </div>
                    <h1 className="text-4xl font-black text-gray-900 tracking-tight leading-[0.9]">{course.course_title}</h1>
@@ -76,9 +75,9 @@ const InstructorCurriculumPage = () => {
 
               <div className="flex items-center gap-3">
                  <Link href={`/instructor/courses/${id}`}>
-                    <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
-                       <Settings size={18} /> Settings
-                    </button>
+                     <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
+                        <Globe size={18} className="text-emerald-500" /> Publish
+                     </button>
                  </Link>
                  <Link href={`/courses/${course.slug}`}>
                     <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
