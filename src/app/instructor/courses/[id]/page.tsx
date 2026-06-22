@@ -108,8 +108,11 @@ export default function InstructorCourseDetail() {
 
   const handleSubmitForReview = async () => {
     if (!course) return;
-    if (!isReadyToPublish) {
-      alert("Please complete the course blueprint before submitting for review.");
+    
+    const incompleteItems = checklist.filter(item => !item.completed);
+    if (incompleteItems.length > 0) {
+      const labels = incompleteItems.map(i => i.label).join(", ");
+      alert(`Please complete the following requirements before submitting: ${labels}`);
       return;
     }
     
@@ -151,11 +154,15 @@ export default function InstructorCourseDetail() {
   const checklist = useMemo(() => {
     if (!course) return [];
     return [
-      { id: 1, label: 'Course Title & Info', completed: !!course.course_title },
+      { id: 1, label: 'Course Title', completed: !!course.course_title },
+      { id: 6, label: 'Subtitle', completed: !!course.sub_title },
+      { id: 7, label: 'Description', completed: !!course.description && course.description.length > 20 },
+      { id: 8, label: 'Category', completed: !!course.category_id },
       { id: 2, label: 'Curriculum (min 1 section)', completed: (course.sections?.length || 0) > 0 },
       { id: 3, label: 'Lessons populated', completed: (course.sections || []).some((s: any) => (s.lessons?.length || 0) > 0) },
       { id: 4, label: 'Pricing configured', completed: course.price >= 0 },
       { id: 5, label: 'Thumbnail uploaded', completed: !!course.thumbnail },
+      { id: 9, label: 'SEO Metadata', completed: !!course.title && !!course.meta_description },
     ];
   }, [course]);
 
