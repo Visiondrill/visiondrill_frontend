@@ -30,21 +30,6 @@ const InstructorCurriculumPage = () => {
     fetchCourse();
   }, [id]);
 
-  const handlePublishToggle = async () => {
-    if (!course) return;
-    const isPublished = course.status === 'PUBLISHED';
-    const endpoint = isPublished
-      ? `/instructor/courses/${id}/unpublish`
-      : `/instructor/courses/${id}/publish`;
-    
-    try {
-      const res = await api.post(endpoint);
-      setCourse({ ...course, status: res.data.status });
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to change status");
-    }
-  };
-
   if (isLoading) return (
      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
@@ -73,32 +58,18 @@ const InstructorCurriculumPage = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                 <Link href={`/instructor/courses/${id}`}>
+               <div className="flex items-center gap-3">
+                  <Link href={`/instructor/courses/${id}`}>
+                      <button className="h-14 px-8 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-3">
+                         <Globe size={18} className="text-white" /> Continue to Publish
+                      </button>
+                  </Link>
+                  <Link href={`/courses/${course.slug}/learn`}>
                      <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
-                        <Globe size={18} className="text-emerald-500" /> Publish
+                        <Eye size={18} className="text-blue-400" /> Preview
                      </button>
-                 </Link>
-                 <Link href={`/courses/${course.slug}/learn`}>
-                    <button className="h-14 px-8 bg-white border border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-3">
-                       <Eye size={18} className="text-blue-400" /> Preview
-                    </button>
-                 </Link>
-                 <button 
-                   onClick={handlePublishToggle}
-                   className={`h-14 px-8 font-black rounded-2xl transition-all shadow-xl flex items-center gap-3 text-[10px] tracking-widest uppercase ${
-                     course.status === 'PUBLISHED'
-                       ? 'bg-gray-900 text-white hover:bg-black'
-                       : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'
-                   }`}
-                 >
-                   {course.status === 'PUBLISHED' ? (
-                     <><Globe size={18} className="text-emerald-400" /> Unpublish</>
-                   ) : (
-                     <><Zap size={18} className="text-yellow-400" /> Go Live</>
-                   )}
-                 </button>
-              </div>
+                  </Link>
+               </div>
 
            </div>
         </header>

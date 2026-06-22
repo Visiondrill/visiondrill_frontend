@@ -18,6 +18,7 @@ export interface Lesson {
   order: number;
   lesson_type?: 'video' | 'text' | 'quiz';
   content: LessonContent | null;
+  _autoOpen?: boolean;
 }
 
 export interface Section {

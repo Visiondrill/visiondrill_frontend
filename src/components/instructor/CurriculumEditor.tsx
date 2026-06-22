@@ -232,7 +232,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
         newLesson.lesson_type = type;
       }
 
-      setLessons([...lessons, newLesson]);
+      setLessons([...lessons, { ...newLesson, _autoOpen: true }]);
       setIsAdding(false);
     } catch (error) {
       console.error("Failed to add lesson", error);
@@ -369,6 +369,14 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
   const [showUploader, setShowUploader] = useState(false);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [showQuizEditor, setShowQuizEditor] = useState(false);
+  
+  useEffect(() => {
+    if (lesson._autoOpen) {
+      if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
+      else if (lesson.lesson_type === 'text') setShowTextEditor(true);
+      else setShowUploader(true);
+    }
+  }, [lesson.id, lesson._autoOpen, lesson.lesson_type]);
 
   const hasVideo = !!lesson.content?.video_url;
   const hasDocument = !!lesson.content?.document_url;
