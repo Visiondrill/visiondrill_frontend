@@ -8,6 +8,7 @@ import { Mail, Lock, ArrowLeft, Zap } from 'lucide-react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +19,7 @@ export default function LoginPage() {
 
     try {
       await getCsrfCookie();
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/login', { email, password, remember });
       
       if (response.status === 200) {
         const user = response.data.user;
@@ -129,10 +130,12 @@ export default function LoginPage() {
               <input
                 id="remember-me"
                 type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
                 className="h-3.5 w-3.5 text-blue-600 focus:ring-blue-50 border-gray-300 rounded cursor-pointer"
               />
               <label htmlFor="remember-me" className="ml-2 block text-[10px] font-bold text-gray-400 cursor-pointer  tracking-widest">
-                Remember
+                Remember me
               </label>
             </div>
 
