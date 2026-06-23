@@ -365,7 +365,9 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
   };
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [title, setTitle] = useState(lesson.title);
+  const [isPreview, setIsPreview] = useState(lesson.content?.is_preview || false);
   const [showUploader, setShowUploader] = useState(false);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [showQuizEditor, setShowQuizEditor] = useState(false);
@@ -397,6 +399,18 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
     }
   };
 
+  const togglePreview = async () => {
+    try {
+      const newVal = !isPreview;
+      setIsPreview(newVal);
+      await api.post(`/instructor/lessons/${lesson.id}/update-meta`, { is_preview: newVal });
+      toast.success(newVal ? "Lesson marked as free preview" : "Lesson locked for enrolled students");
+    } catch (err) {
+      console.error("Failed to update preview status", err);
+      setIsPreview(!isPreview);
+    }
+  };
+
   const handleDelete = async () => {
     if (confirm("Delete this lesson permanently?")) {
       try {
@@ -409,19 +423,22 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
   };
 
   return (
-    <>
+    <div ref={setNodeRef} style={style} className="space-y-2">
       <div 
-        ref={setNodeRef} 
-        style={style} 
-        className={`flex items-center justify-between p-3 pl-4 ${isDragging ? 'bg-blue-50 border-blue-200 shadow-lg z-20' : 'bg-white border-gray-50'} border rounded-xl hover:border-blue-100 hover:shadow-sm transition-all group`}
+        className={`flex items-center justify-between p-4 ${isDragging ? 'bg-blue-50 border-blue-200 shadow-xl z-20' : 'bg-white border-gray-100'} border rounded-2xl hover:border-blue-100 hover:shadow-lg transition-all group group/lesson`}
       >
         <div className="flex items-center flex-grow">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 -ml-1 mr-3 hover:bg-gray-100 rounded">
-            <GripVertical className="text-gray-200" size={16} />
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 -ml-2 mr-3 hover:bg-gray-100 rounded-xl transition-colors">
+            <GripVertical className="text-gray-300" size={18} />
           </div>
           
           <div 
-            className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 cursor-pointer transition-colors"
+            className={cn(
+              "p-3 rounded-xl transition-all cursor-pointer shadow-sm border",
+              lesson.lesson_type === 'quiz' ? "bg-orange-50 border-orange-100 group-hover/lesson:bg-orange-600 group-hover/lesson:text-white" :
+              lesson.lesson_type === 'text' ? "bg-purple-50 border-purple-100 group-hover/lesson:bg-purple-600 group-hover/lesson:text-white" :
+              "bg-blue-50 border-blue-100 group-hover/lesson:bg-blue-600 group-hover/lesson:text-white"
+            )}
             onClick={() => {
               if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
               else if (lesson.lesson_type === 'text') setShowTextEditor(!showTextEditor);
@@ -430,92 +447,151 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
           >
             {getTypeIcon()}
           </div>
-
           
-          {isEditing ? (
-             <div className="flex items-center space-x-2">
+          <div className="ml-4 flex-grow">
+            {isEditing ? (
+              <div className="flex items-center space-x-2 animate-in fade-in slide-in-from-left-2 duration-300">
                 <input 
-                   autoFocus
-                   type="text" 
-                   value={title} 
-                   onChange={(e) => setTitle(e.target.value)}
-                   className="bg-gray-50 border border-blue-200 rounded px-2 py-1 text-sm font-bold focus:ring-2 focus:ring-blue-100 outline-none"
-                   onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveTitle();
-                      if (e.key === 'Escape') setIsEditing(false);
-                   }}
+                  autoFocus
+                  type="text" 
+                  value={title} 
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="bg-white border border-blue-200 rounded-xl px-4 py-2 text-sm font-black text-gray-900 focus:ring-4 focus:ring-blue-50 outline-none w-full max-w-md shadow-inner"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveTitle();
+                    if (e.key === 'Escape') setIsEditing(false);
+                  }}
                 />
-                <button onPointerDown={(e) => { e.preventDefault(); handleSaveTitle(); }} className="text-blue-600 hover:text-blue-800"><Check size={16} /></button>
-                <button onPointerDown={(e) => { e.preventDefault(); setIsEditing(false); }} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
-             </div>
-          ) : (
-              <div className="flex items-center gap-2">
-                 <span 
-                   className="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors cursor-pointer" 
-                   onClick={() => {
-                     if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
-                     else if (lesson.lesson_type === 'text') setShowTextEditor(!showTextEditor);
-                     else setShowUploader(!showUploader);
-                   }}
-                 >
-                   {title}
-                 </span>
-                 {lesson.lesson_type === 'quiz' && (
-                   <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-2 py-0.5 rounded tracking-widest">Quiz Attached</span>
-                 )}
-                 {hasVideo && lesson.lesson_type !== 'quiz' && (
-                   <span className="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded tracking-widest">Video</span>
-                 )}
-                 {hasDocument && lesson.lesson_type !== 'quiz' && (
-                   <span className="text-[10px] font-black bg-purple-50 text-purple-600 px-2 py-0.5 rounded tracking-widest">Doc</span>
-                 )}
-                 {hasBody && !hasVideo && !hasDocument && lesson.lesson_type !== 'quiz' && (
-                   <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded tracking-widest">Text</span>
-                 )}
+                <button onPointerDown={(e) => { e.preventDefault(); handleSaveTitle(); }} className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"><Check size={18} /></button>
+                <button onPointerDown={(e) => { e.preventDefault(); setIsEditing(false); }} className="w-10 h-10 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors"><X size={18} /></button>
               </div>
-          )}
+            ) : (
+                <div className="flex items-center gap-3">
+                  <span 
+                    className="text-sm font-black text-gray-900 group-hover/lesson:text-blue-600 transition-colors cursor-pointer leading-tight tracking-tight italic" 
+                    onClick={() => {
+                      if (lesson.lesson_type === 'quiz') setShowQuizEditor(true);
+                      else if (lesson.lesson_type === 'text') setShowTextEditor(!showTextEditor);
+                      else setShowUploader(!showUploader);
+                    }}
+                  >
+                    {title}
+                  </span>
+                  
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover/lesson:opacity-100 transition-opacity">
+                    {isPreview && <span className="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest italic rounded-full">Preview Mode</span>}
+                    <ContentSummary lesson={lesson} />
+                  </div>
+                </div>
+            )}
+          </div>
         </div>
         
         {!isEditing && (
-          <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-            {lesson.lesson_type === 'quiz' ? (
-              <button
-                onPointerDown={() => setShowQuizEditor(true)}
-                className="p-1.5 text-orange-400 hover:text-orange-600 transition-colors"
-                title="Manage Quiz Questions"
-              >
-                <HelpCircle size={16} />
-              </button>
-            ) : (
-              <>
-                <button
-                  onPointerDown={() => setShowTextEditor(v => !v)}
-                  className={`p-1.5 transition-colors ${showTextEditor ? 'text-purple-600 bg-purple-50 rounded-lg' : 'text-gray-400 hover:text-purple-600'}`}
-                  title="Edit Text Content"
-                >
-                  <FileText size={16} />
-                </button>
-                <button
-                  onPointerDown={() => setShowUploader(v => !v)}
-                  className={`p-1.5 transition-colors ${showUploader ? 'text-blue-600 bg-blue-50 rounded-lg' : 'text-gray-400 hover:text-blue-600'}`}
-                  title="Upload Video & Transcribe"
-                >
-                  <Video size={16} />
-                </button>
-              </>
-            )}
-            <button onPointerDown={() => setIsEditing(true)} className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors" title="Edit Title">
-              <Edit3 size={16} />
-            </button>
-            <button onPointerDown={handleDelete} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Delete Lesson">
-              <Trash2 size={16} />
-            </button>
+          <div className="flex items-center gap-2 opacity-0 group-hover/lesson:opacity-100 transition-all">
+            <div className="flex items-center gap-1 bg-gray-50 p-1.5 rounded-2xl border border-gray-100 shadow-inner">
+               <button
+                 onPointerDown={() => setShowSettings(!showSettings)}
+                 className={cn(
+                   "p-2.5 rounded-xl transition-all",
+                   showSettings ? "bg-gray-900 text-white shadow-lg" : "text-gray-400 hover:text-gray-900 hover:bg-white"
+                 )}
+                 title="Individual Modification Panel"
+               >
+                 <Settings size={18} />
+               </button>
+               <button
+                 onPointerDown={() => setShowTextEditor(v => !v)}
+                 className={cn(
+                    "p-2.5 rounded-xl transition-all",
+                    showTextEditor ? "bg-purple-600 text-white shadow-lg" : "text-gray-400 hover:text-purple-600 hover:bg-white"
+                 )}
+                 title="Content Editor"
+               >
+                 <Edit3 size={18} />
+               </button>
+               <button onPointerDown={handleDelete} className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-xl transition-all" title="Terminate Component">
+                 <Trash2 size={18} />
+               </button>
+            </div>
           </div>
         )}
       </div>
 
+      {/* Advanced Modification Panel */}
+      {showSettings && (
+        <div className="mx-6 p-8 bg-gray-900 rounded-[2.5rem] border border-gray-800 shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden group/panel">
+           <div className="absolute top-0 right-0 p-20 bg-blue-600/10 blur-[60px] rounded-full -mr-10 -mt-10" />
+           <div className="relative z-10">
+              <div className="flex items-center justify-between mb-8">
+                 <div>
+                    <h4 className="text-sm font-black text-white tracking-[0.15em] uppercase italic">Individual Modification Panel</h4>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Component UID: #{lesson.id.toString().padStart(6, '0')}</p>
+                 </div>
+                 <button onClick={() => setShowSettings(false)} className="p-2 bg-white/5 text-gray-400 hover:text-white rounded-xl transition-colors">
+                    <X size={16} />
+                 </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="space-y-6">
+                    <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
+                       <div className="flex items-center justify-between">
+                          <label className="text-xs font-black text-gray-300 uppercase tracking-widest italic">Public Preview</label>
+                          <button
+                            onClick={togglePreview}
+                            className={cn(
+                              "w-12 h-6 rounded-full transition-all relative shadow-inner",
+                              isPreview ? "bg-emerald-600" : "bg-white/10"
+                            )}
+                          >
+                            <div className={cn(
+                              "absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all",
+                              isPreview ? "right-1" : "left-1"
+                            )} />
+                          </button>
+                       </div>
+                       <p className="text-[10px] font-bold text-gray-500 leading-relaxed">Allow guests to view this specific component without enrolling in the course.</p>
+                    </div>
+
+                    <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
+                       <label className="text-xs font-black text-gray-300 uppercase tracking-widest italic block">Identifier Label</label>
+                       <div className="flex items-center gap-4">
+                          <input 
+                            type="text" 
+                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                          />
+                          <button onClick={handleSaveTitle} className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95">Update</button>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-400 shadow-inner">
+                       {getTypeIcon()}
+                    </div>
+                    <div>
+                       <p className="text-xs font-black text-white uppercase tracking-widest">{lesson.lesson_type?.replace(/_/g, ' ')} Module</p>
+                       <p className="text-[10px] font-bold text-gray-500 mt-1">Configure individual sub-components of this module.</p>
+                    </div>
+                    <div className="w-full pt-4 space-y-2">
+                       <button onClick={() => { setShowSettings(false); setShowTextEditor(true); }} className="w-full py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black text-gray-300 uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                          <FileText size={14} /> Modify Content
+                       </button>
+                       <button onClick={handleDelete} className="w-full py-3 bg-red-600/10 border border-red-500/20 rounded-2xl text-[10px] font-black text-red-500 uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2">
+                          <Trash2 size={14} /> Terminate Record
+                       </button>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       {showUploader && lesson.lesson_type !== 'quiz' && (
-        <div className="mx-2 mb-2">
+        <div className="mx-6 mb-4 animate-in slide-in-from-top-4 duration-500">
           <VideoUploader
             lessonId={lesson.id}
             courseId={courseId}
@@ -527,7 +603,7 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
       )}
 
       {showTextEditor && lesson.lesson_type !== 'quiz' && (
-        <div className="mx-2 mb-2">
+        <div className="mx-6 mb-4 animate-in slide-in-from-top-4 duration-500">
           <TextEditor
             lessonId={lesson.id}
             courseId={courseId}
@@ -540,14 +616,34 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
       )}
 
       {showQuizEditor && (
-        <QuizEditor 
-          lessonId={lesson.id}
-          courseId={courseId}
-          onClose={() => setShowQuizEditor(false)}
-        />
+        <div className="animate-in zoom-in-95 duration-500">
+          <QuizEditor 
+            lessonId={lesson.id}
+            courseId={courseId}
+            onClose={() => setShowQuizEditor(false)}
+          />
+        </div>
       )}
-    </>
+    </div>
   );
 };
+
+function ContentSummary({ lesson }: { lesson: Lesson }) {
+   if (lesson.lesson_type === 'quiz') return <span className="px-3 py-1 bg-orange-50 text-orange-600 border border-orange-100 text-[10px] font-black uppercase tracking-widest italic rounded-full">Quiz Core</span>;
+   
+   const hasVideo = !!lesson.content?.video_url;
+   const hasText = !!lesson.content?.body && lesson.content.body.length > 50;
+   const hasDoc = !!lesson.content?.document_url;
+
+   return (
+      <div className="flex items-center gap-1.5">
+         {hasVideo && <span className="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest italic rounded-full">Vision Ready</span>}
+         {hasText && <span className="px-3 py-1 bg-purple-50 text-purple-600 border border-purple-100 text-[10px] font-black uppercase tracking-widest italic rounded-full">Article Core</span>}
+         {hasDoc && <span className="px-3 py-1 bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-black uppercase tracking-widest italic rounded-full">Artifact</span>}
+         {!hasVideo && !hasText && !hasDoc && <span className="px-3 py-1 bg-red-50 text-red-400 border border-red-50 text-[10px] font-black uppercase tracking-widest italic rounded-full opacity-50">Empty Shell</span>}
+      </div>
+   );
+}
+
 
 export default CurriculumEditor;
