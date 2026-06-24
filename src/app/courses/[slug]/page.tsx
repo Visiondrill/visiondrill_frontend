@@ -6,9 +6,7 @@ import { api } from '@/lib/api';
 import { sanitizeHtml } from '@/lib/sanitize';
 import Button from '@/components/Button';
 import {
-  User,
   Clock,
-  Eye,
   CheckCircle,
   ChevronDown,
   Play,
@@ -71,7 +69,6 @@ const CourseDetailPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Get user from local storage or auth context
     const storedUser = localStorage.getItem('user');
     if (storedUser) setUser(JSON.parse(storedUser));
 
@@ -82,7 +79,6 @@ const CourseDetailPage = () => {
         if (response.data.sections.length > 0) {
           setExpandedSections([response.data.sections[0].id]);
         }
-        // Fetch reviews and rating stats in parallel
         const courseId = response.data.id;
         const [reviewsRes, ratingRes] = await Promise.all([
           api.get(`/courses/${courseId}/reviews`).catch(() => ({ data: [] })),
@@ -116,9 +112,10 @@ const CourseDetailPage = () => {
 
   if (!course) return <div className="h-screen flex items-center justify-center">Course not found</div>;
 
+  const firstLessonId = course.sections?.[0]?.lessons?.[0]?.id;
+
   return (
     <main className="min-h-screen bg-[#FDFDFF] pb-32">
-      {/* Premium Hero Section */}
       <div className="bg-[#0F172A] pt-40 pb-32 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[1000px] h-full bg-[radial-gradient(circle_at_100%_0%,rgba(59,130,246,0.1),transparent)]"></div>
         <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
@@ -152,9 +149,7 @@ const CourseDetailPage = () => {
                     <p className="text-sm font-black text-white tracking-tight underline decoration-blue-600/50 underline-offset-4">{course.author.fullname}</p>
                   </div>
                 </div>
-                
                 <div className="h-10 w-px bg-white/10 hidden sm:block"></div>
-
                 <div className="flex items-center gap-8 text-[10px] font-black  tracking-widest text-white/60">
                    <div className="flex items-center gap-2"><Clock size={16} className="text-blue-500" /> {course.duration || '12.5h Content'}</div>
                    <div className="flex items-center gap-2"><Globe size={16} className="text-blue-500" /> English & Swahili</div>
@@ -169,23 +164,22 @@ const CourseDetailPage = () => {
               </div>
             </div>
             
-            {/* Action Sidebar: Udemy Style Premium Card */}
             <div className="relative group">
                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[3rem] blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
                <div className="relative bg-white rounded-[3rem] p-4 text-gray-900 border border-gray-100 shadow-2xl overflow-hidden scale-105">
                  <div className="relative aspect-video rounded-[2.5rem] overflow-hidden mb-8 group/img cursor-pointer">
-                    <img src={course.sections?.[0]?.lessons?.[0] ? 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop' : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop'} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110 opacity-90" alt="" />
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-colors group-hover/img:bg-black/10">
-                       <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover/img:scale-110">
-                         <Play fill="currentColor" className="text-blue-600 ml-1" size={24} />
-                       </div>
+                    <img src={'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop'} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110 opacity-90" alt="" />
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-colors group-hover/img:bg-black/10 text-white">
+                       <Play fill="currentColor" size={48} />
                     </div>
-                    <div 
-                       onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${course.sections[0]?.lessons[0]?.id}`)} 
-                       className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl text-center active:scale-95 transition-transform"
-                    >
-                       <span className="text-[10px] font-black  tracking-[0.3em] text-black">Preview Syllabus</span>
-                    </div>
+                    {firstLessonId && (
+                      <div 
+                         onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${firstLessonId}`)} 
+                         className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl text-center active:scale-95 transition-transform"
+                      >
+                         <span className="text-[10px] font-black tracking-[0.3em] text-black uppercase">Preview Syllabus</span>
+                      </div>
+                    )}
                  </div>
 
                  <div className="px-6 pb-6">
@@ -197,7 +191,7 @@ const CourseDetailPage = () => {
                     <div className="space-y-3 mb-8">
                         {isOwner ? (
                            <Button 
-                              onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${course.sections[0]?.lessons[0]?.id}`)} 
+                              onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${firstLessonId}`)} 
                               className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100 bg-emerald-600 hover:bg-emerald-700"
                            >
                               Go to Course (Instructor)
@@ -223,7 +217,6 @@ const CourseDetailPage = () => {
         </div>
       </div>
 
-      {/* Content Navigation Tabs */}
       <div className="sticky top-0 bg-white/80 backdrop-blur-2xl border-b border-gray-100 z-50 py-4 mb-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex gap-12">
@@ -242,7 +235,6 @@ const CourseDetailPage = () => {
         </div>
       </div>
 
-      {/* Main Content Body */}
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
           <div className="lg:col-span-2">
@@ -253,7 +245,6 @@ const CourseDetailPage = () => {
                    <h3 className="text-3xl font-black text-gray-900  tracking-tighter mb-10 italic">Core Competencies</h3>
                    <div className="prose prose-lg prose-blue max-w-none font-medium leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description) }}></div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <FeatureBox title="AI Integrated" desc="Our curriculum adapt with market trends automatically." icon={<Cpu size={20} />} />
                    <FeatureBox title="Skill Benchmarking" desc="Pre & post assessment for every major module." icon={<TrendingUp size={20} className="text-emerald-500" />} />
