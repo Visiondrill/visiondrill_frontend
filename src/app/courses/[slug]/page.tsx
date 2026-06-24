@@ -180,7 +180,10 @@ const CourseDetailPage = () => {
                          <Play fill="currentColor" className="text-blue-600 ml-1" size={24} />
                        </div>
                     </div>
-                    <div className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl text-center">
+                    <div 
+                       onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${course.sections[0]?.lessons[0]?.id}`)} 
+                       className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl text-center active:scale-95 transition-transform"
+                    >
                        <span className="text-[10px] font-black  tracking-[0.3em] text-black">Preview Syllabus</span>
                     </div>
                  </div>
@@ -192,16 +195,16 @@ const CourseDetailPage = () => {
                     </div>
 
                     <div className="space-y-3 mb-8">
-                       {isOwner ? (
-                          <Button 
-                             onClick={() => router.push(`/courses/${course.slug}/lesson/${course.sections[0]?.lessons[0]?.id}`)} 
-                             className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100 bg-emerald-600 hover:bg-emerald-700"
-                          >
-                             Go to Course (Instructor)
-                          </Button>
-                       ) : (
-                          <Button onClick={() => setShowPaymentModal(true)} className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100">Unlock Mastery Now</Button>
-                       )}
+                        {isOwner ? (
+                           <Button 
+                              onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${course.sections[0]?.lessons[0]?.id}`)} 
+                              className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100 bg-emerald-600 hover:bg-emerald-700"
+                           >
+                              Go to Course (Instructor)
+                           </Button>
+                        ) : (
+                           <Button onClick={() => setShowPaymentModal(true)} className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-100">Unlock Mastery Now</Button>
+                        )}
                        <button className="w-full h-16 text-xs font-black tracking-[0.2em] rounded-2xl border border-gray-100 hover:bg-gray-50 transition-all">Share Path</button>
                     </div>
 
@@ -286,7 +289,10 @@ const CourseDetailPage = () => {
                       <div className="px-8 pb-8 pt-0 animate-in slide-in-from-top-4 duration-500">
                         <div className="space-y-3 pt-6 border-t border-gray-50">
                           {section.lessons.map((lesson) => (
-                            <div key={lesson.id} className="flex items-center justify-between p-5 rounded-2xl bg-gray-50/50 hover:bg-white hover:shadow-xl hover:shadow-blue-50 transition-all group/item cursor-default">
+                            <div key={lesson.id} 
+                               onClick={() => router.push(`/courses/${course.slug}/learn?lesson=${lesson.id}`)}
+                               className="flex items-center justify-between p-5 rounded-2xl bg-gray-50/50 hover:bg-white hover:shadow-xl hover:shadow-blue-50 transition-all group/item cursor-pointer"
+                            >
                               <div className="flex items-center gap-4">
                                 {lesson.content_type === 'video' ? <PlayCircle size={16} className="text-blue-500" /> : 
                                  lesson.content_type === 'quiz' ? <HelpCircle size={16} className="text-emerald-500" /> : 
@@ -295,7 +301,7 @@ const CourseDetailPage = () => {
                               </div>
                               <div className="flex items-center gap-4">
                                  <span className="text-[9px] font-bold text-gray-300  tracking-widest">12:45</span>
-                                 <button className="text-[9px] font-black text-blue-600  tracking-widest opacity-0 group-hover/item:opacity-100 transition-all flex items-center gap-1">Details <ArrowRight size={10} /></button>
+                                 <button className="text-[9px] font-black text-blue-600  tracking-widest opacity-0 group-hover/item:opacity-100 transition-all flex items-center gap-1">Preview <ArrowRight size={10} /></button>
                               </div>
                             </div>
                           ))}
