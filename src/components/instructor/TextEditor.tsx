@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { api } from '@/lib/api';
 import { Save, Loader2, FileText, CheckCircle, AlertCircle, X, Paperclip, Eye } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface TextEditorProps {
   lessonId: number;
@@ -150,13 +151,14 @@ export default function TextEditor({ lessonId, courseId, initialBody = '', initi
           </div>
         )}
 
+
         <div className="space-y-4">
            <label className="block text-[10px] font-black text-gray-400 tracking-widest uppercase">Text Content</label>
-           <textarea 
-             value={body}
-             onChange={(e) => setBody(e.target.value)}
+           <RichTextEditor 
+             content={body}
+             onChange={setBody}
              placeholder="Write your lesson notes, description, or transcript here..."
-             className="w-full min-h-[250px] p-6 bg-gray-50 border border-gray-100 rounded-3xl text-sm font-medium leading-relaxed focus:ring-4 focus:ring-purple-50 focus:border-purple-300 outline-none transition-all shadow-inner"
+             minHeight="300px"
            />
         </div>
 

@@ -18,6 +18,7 @@ import {
   Zap
 } from 'lucide-react';
 import Button from '@/components/Button';
+import RichTextEditor from '@/components/RichTextEditor';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -211,13 +212,12 @@ function AICourseGenerator() {
                ) : (
                  <div className="space-y-2">
                     <label className="text-xs font-medium text-gray-400 ml-2">Paste Video Transcript</label>
-                    <textarea 
-                       rows={10}
-                       value={transcript}
-                       onChange={e => setTranscript(e.target.value)}
-                       placeholder="Paste the transcription text here..."
-                       className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-3xl text-sm font-bold focus:ring-8 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all resize-none"
-                    />
+                     <RichTextEditor 
+                        content={transcript}
+                        onChange={setTranscript}
+                        placeholder="Paste the transcription text here..."
+                        minHeight="300px"
+                     />
                  </div>
                )}
 

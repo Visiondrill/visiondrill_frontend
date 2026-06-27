@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { X, Plus, Trash2, CheckCircle2, Circle, Save, Loader2, HelpCircle, Video, FileUp } from 'lucide-react';
+import { X, Plus, Trash2, CheckCircle2, Circle, Save, Loader2, HelpCircle, Video } from 'lucide-react';
 import Button from '@/components/Button';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface Answer {
   id?: number;
@@ -253,26 +254,46 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
                   />
                </div>
 
+
+
                <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Description</label>
-                  <textarea 
-                    rows={4}
-                    value={quizInfo.description}
-                    onChange={(e) => setQuizInfo({...quizInfo, description: e.target.value})}
+                  <RichTextEditor 
+                    content={quizInfo.description}
+                    onChange={(val) => setQuizInfo({...quizInfo, description: val})}
                     placeholder="How should students prepare for this quiz?"
-                    className="w-full text-lg font-medium text-gray-600 bg-white border border-gray-100 rounded-3xl p-6 focus:ring-4 focus:ring-orange-100 focus:border-orange-200 outline-none transition-all shadow-sm"
+                    minHeight="150px"
                   />
                </div>
 
                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Time Limit (Min)</label>
-                    <input 
-                      type="number" 
-                      value={quizInfo.duration}
-                      onChange={(e) => setQuizInfo({...quizInfo, duration: parseInt(e.target.value)})}
-                      className="w-full text-xl font-black text-gray-900 bg-white border border-gray-100 rounded-3xl p-6 focus:ring-4 focus:ring-orange-100 focus:border-orange-200 outline-none transition-all shadow-sm"
-                    />
+                   <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Time Limit Control</label>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => setQuizInfo({...quizInfo, unlimited_time: false})}
+                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${!quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:border-orange-200'}`}
+                      >
+                         Timed
+                      </button>
+                      <button
+                        onClick={() => setQuizInfo({...quizInfo, unlimited_time: true})}
+                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:border-orange-200'}`}
+                      >
+                         No Limit
+                      </button>
+                    </div>
+                    {!quizInfo.unlimited_time && (
+                      <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Duration (Minutes)</label>
+                        <input 
+                          type="number" 
+                          value={quizInfo.duration}
+                          onChange={(e) => setQuizInfo({...quizInfo, duration: parseInt(e.target.value)})}
+                          className="w-full text-xl font-black text-gray-900 bg-white border border-gray-100 rounded-3xl p-6 focus:ring-4 focus:ring-orange-100 focus:border-orange-200 outline-none transition-all shadow-sm"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Passing Score (%)</label>
@@ -358,23 +379,29 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between pt-8 border-t border-gray-50">
-                         <div className="flex items-center gap-6">
-                            <button className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
-                               <Video size={16} /> Hint Video
-                            </button>
-                            <button className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
-                               <FileUp size={16} /> Question File
-                            </button>
+                      <div className="pt-8 border-t border-gray-50 flex flex-col gap-4">
+                         <div className="flex flex-col gap-2">
+                           <label className="text-[10px] font-black text-gray-400 tracking-widest uppercase flex items-center gap-2">
+                             <Video size={12} className="text-blue-500" /> Hint Video URL (Optional)
+                           </label>
+                           <input 
+                             type="text"
+                             value={(q as any).video_url || ''} 
+                             onChange={(e) => handleUpdateQuestion(qIndex, 'video_url', e.target.value)}
+                             placeholder="e.g. https://visiondrill.com/uploads/hint.mp4"
+                             className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3 text-sm font-bold text-gray-800 focus:bg-white focus:border-blue-200 transition-all outline-none"
+                           />
                          </div>
-                         <Button 
-                            onClick={() => handleSaveQuestion(qIndex)} 
-                            disabled={isSaving}
-                            className="flex items-center gap-3 h-12 px-8 text-xs font-black tracking-widest"
-                          >
-                            {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
-                            SAVE QUESTION
-                         </Button>
+                         <div className="flex justify-end">
+                            <Button 
+                               onClick={() => handleSaveQuestion(qIndex)} 
+                               disabled={isSaving}
+                               className="flex items-center gap-3 h-12 px-8 text-xs font-black tracking-widest"
+                             >
+                               {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
+                               SAVE QUESTION
+                            </Button>
+                         </div>
                       </div>
                     </div>
                   ))}

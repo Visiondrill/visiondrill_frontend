@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/Button';
 import CourseAvatar from '@/components/CourseAvatar';
+import RichTextEditor from '@/components/RichTextEditor';
 
 
 export default function InstructorCourseDetail() {
@@ -56,7 +57,6 @@ export default function InstructorCourseDetail() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        await getCsrfCookie();
         const [courseRes, studentsRes, catRes] = await Promise.all([
           api.get(`/courses/${id}`),
           api.get(`/instructor/courses/${id}/students`).catch(() => ({ data: { students: [] } })),
@@ -287,12 +287,11 @@ export default function InstructorCourseDetail() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">What students will learn?</label>
-                    <textarea 
-                        rows={6}
-                        value={form.description}
-                        onChange={e => setForm({...form, description: e.target.value})}
-                        className="w-full px-6 py-6 bg-gray-50 border border-gray-100 rounded-[2rem] font-medium text-sm focus:ring-8 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all leading-relaxed"
-                        placeholder="Describe the outcomes and requirements..."
+                    <RichTextEditor
+                        placeholder="Describe what students will learn..."
+                        content={form.description}
+                        onChange={val => setForm({...form, description: val})}
+                        minHeight="200px"
                     />
                   </div>
 

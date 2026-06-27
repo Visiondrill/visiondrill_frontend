@@ -6,10 +6,11 @@ import type { QuizQuestion, QuizConfiguration, QuizInvitation, StudentResult } f
 import {
   Plus, Trash2, Send, CheckCircle2, Loader2, Save, Clock, Users,
   UserCheck, Mail, Copy, ExternalLink, Eye, Settings, ListChecks,
-  AlertCircle, FileText, Image, ChevronLeft, ChevronRight, Timer,
+  AlertCircle, FileText, Image, Video, ChevronLeft, ChevronRight, Timer,
   Target, Infinity, Link2, UserPlus, X, Search, Filter, Sparkles
 } from 'lucide-react';
 import Button from '@/components/Button';
+import RichTextEditor from '@/components/RichTextEditor';
 import { useRouter } from 'next/navigation';
 
 // ─── Constants ───────────────────────────────────────────────────────
@@ -20,7 +21,7 @@ const DEFAULT_CONFIG: QuizConfiguration = {
   heading: '',
   description: '',
   time_limit_minutes: 30,
-  unlimited_time: false,
+  unlimited_time: true,
   group_mode: false,
   only_leader_submit: false,
   passing_score_percent: 60,
@@ -136,11 +137,6 @@ export default function CreateCommandQuiz() {
 
   // ─── Create / Save Quiz ──────────────────────────────────────────
   const handleCreateQuiz = async () => {
-    if (!config.heading.trim()) {
-      setError('Please enter a quiz title.');
-      return;
-    }
-
     // Questions validation only happens if questions are actually present
     // OR from the Questions step. We skip it during initial creation to allow "Save & Build"
     const validationQuestions = questions.filter(q => q.quiz_question_type_id === 1 && q.question.trim());
@@ -392,7 +388,7 @@ export default function CreateCommandQuiz() {
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter mb-8">
-          {createdQuizId ? config.heading : 'Build Assessment'}
+          Build Assessment
           <span className="block text-lg font-medium text-gray-400 mt-1">
             {createdQuizId ? 'Manage questions, distribution & results' : 'Configure, author, and deploy'}
           </span>
@@ -468,27 +464,6 @@ export default function CreateCommandQuiz() {
         {/* ─── STEP 1: CONFIGURATION ─────────────────────────────────── */}
         {currentStep === 'Configuration' && (
           <div className="space-y-8">
-            {/* Basic Info */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 sm:p-10 shadow-sm">
-              <label className="text-[10px] font-black text-gray-400 tracking-widest uppercase block mb-4">
-                Assessment Identification
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. AI Masterclass Assessment Test - Cohort A"
-                className="w-full text-2xl sm:text-3xl font-black text-gray-900 border-b-2 border-gray-100 pb-3 outline-none focus:border-blue-600 transition-colors placeholder:text-gray-200"
-                value={config.heading}
-                onChange={e => updateConfig('heading', e.target.value)}
-              />
-              <textarea
-                placeholder="Brief description or instructions for students..."
-                className="w-full mt-6 bg-gray-50 border-none rounded-2xl p-5 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-100 placeholder:text-gray-300 resize-none"
-                rows={3}
-                value={config.description || ''}
-                onChange={e => updateConfig('description', e.target.value)}
-              />
-            </div>
-
             {/* Time Management */}
             <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 sm:p-10 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -709,7 +684,6 @@ export default function CreateCommandQuiz() {
                     >
                       <option value={1}>Multiple Choice</option>
                       <option value={2}>Essay / Direct Response</option>
-                      <option value={3}>File Upload</option>
                     </select>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-gray-300">Points:</span>
@@ -734,12 +708,11 @@ export default function CreateCommandQuiz() {
                 </div>
 
                 {/* Question Text */}
-                <textarea
+                <RichTextEditor
                   placeholder="Enter question text..."
-                  className="w-full text-lg font-bold border-none outline-none bg-gray-50/50 p-5 rounded-2xl mb-6 placeholder:text-gray-200 resize-none"
-                  rows={2}
-                  value={q.question}
-                  onChange={e => updateQuestion(qIdx, 'question', e.target.value)}
+                  content={q.question}
+                  onChange={val => updateQuestion(qIdx, 'question', val)}
+                  minHeight="100px"
                 />
 
                 {/* MCQ Answers */}
@@ -802,20 +775,19 @@ export default function CreateCommandQuiz() {
                   </div>
                 )}
 
-                {/* File Upload */}
-                {q.quiz_question_type_id === 3 && (
-                  <div className="p-8 border-2 border-dashed border-gray-100 rounded-3xl flex items-center gap-4 text-gray-400 bg-gray-50/30">
-                    <Image size={24} />
-                    <div>
-                      <span className="text-[10px] font-black tracking-widest uppercase block">
-                        File Upload Mode
-                      </span>
-                      <span className="text-xs font-medium text-gray-300">
-                        Students will upload files (PDF, DOCX, images, etc.)
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {/* Video Hint */}
+                <div className="mt-6 flex flex-col gap-2">
+                  <label className="text-[10px] font-black text-gray-400 tracking-widest uppercase flex items-center gap-2">
+                    <Video size={12} className="text-blue-500" /> Hint Video (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. https://youtube.com/watch?v=... or local video URL"
+                    className="w-full bg-gray-50 border border-transparent rounded-xl px-5 py-3 text-sm font-semibold outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-gray-300"
+                    value={(q as any).video_url || ''}
+                    onChange={e => updateQuestion(qIdx, 'video_url', e.target.value)}
+                  />
+                </div>
               </div>
             ))}
 
@@ -868,7 +840,7 @@ export default function CreateCommandQuiz() {
                 <div>
                   <h2 className="text-2xl font-black text-gray-900">Distribute Assessment</h2>
                   <p className="text-sm text-gray-400 font-medium">
-                    {createdQuizId ? `Quiz #${createdQuizId}: ${config.heading}` : 'Email quiz links to students'}
+                    {createdQuizId ? `Quiz #${createdQuizId}` : 'Email quiz links to students'}
                   </p>
                 </div>
               </div>

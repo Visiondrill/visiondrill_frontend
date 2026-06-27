@@ -16,10 +16,7 @@ const InstructorCurriculumPage = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const [response] = await Promise.all([
-          api.get(`/courses/${id}`),
-          getCsrfCookie()
-        ]);
+        const response = await api.get(`/courses/${id}`);
         setCourse(response.data);
       } catch (error) {
         console.error("Failed to fetch course", error);

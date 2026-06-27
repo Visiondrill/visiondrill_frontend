@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { api, getErrorMessage } from '@/lib/api';
 import { User, Mail, Shield, Zap, Save, Loader2, CheckCircle, Camera, Globe, Lock, KeyRound } from 'lucide-react';
 import Button from '@/components/Button';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function InstructorSettings() {
   const [user, setUser] = useState<any>(null);
@@ -240,11 +241,11 @@ export default function InstructorSettings() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-2">Biography</label>
-                  <textarea
-                    rows={5}
-                    value={formData.long_description}
-                    onChange={e => setFormData({...formData, long_description: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-purple-50 focus:border-purple-400 outline-none font-medium text-sm transition-all resize-none"
+                  <RichTextEditor
+                    content={formData.long_description}
+                    onChange={val => setFormData({...formData, long_description: val})}
+                    placeholder="Tell us about your experience..."
+                    minHeight="200px"
                   />
                 </div>
               </div>

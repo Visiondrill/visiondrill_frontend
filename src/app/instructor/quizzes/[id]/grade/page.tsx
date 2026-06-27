@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/Button';
+import SafeHTML from '@/components/SafeHTML';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface EssaySubmission {
   id: number;
@@ -400,7 +402,7 @@ export default function EssayGradingPage() {
                           >
                             <FileText size={18} className="text-purple-400 mt-0.5 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-700 line-clamp-2">{sub.question_text}</p>
+                              <SafeHTML html={sub.question_text} className="text-sm font-bold text-gray-700 line-clamp-2" />
                               <p className="text-[10px] text-gray-400 font-medium mt-1">
                                 Max {sub.points} points • Submitted {new Date(sub.submitted_at).toLocaleDateString()}
                               </p>
@@ -413,9 +415,7 @@ export default function EssayGradingPage() {
                               <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">
                                 Student Response
                               </p>
-                              <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {sub.answer_text || 'No response submitted.'}
-                              </p>
+                              <SafeHTML html={sub.answer_text || 'No response submitted.'} className="text-sm font-medium text-gray-700 leading-relaxed" />
                             </div>
                           </div>
 
@@ -463,12 +463,11 @@ export default function EssayGradingPage() {
                               <label className="text-[10px] font-black text-gray-400 tracking-widest uppercase block mb-2">
                                 Feedback
                               </label>
-                              <textarea
+                              <RichTextEditor
                                 placeholder="Provide constructive feedback..."
-                                className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs font-medium outline-none focus:border-purple-400 resize-none"
-                                rows={2}
-                                value={grade?.feedback || ''}
-                                onChange={e => handleFeedbackChange(sub.id, e.target.value)}
+                                content={grade?.feedback || ''}
+                                onChange={val => handleFeedbackChange(sub.id, val)}
+                                minHeight="100px"
                               />
                             </div>
                           </div>

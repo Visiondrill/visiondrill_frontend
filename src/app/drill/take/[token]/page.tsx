@@ -5,6 +5,8 @@ import { api, getErrorMessage } from '@/lib/api';
 import { useParams } from 'next/navigation';
 import { CheckCircle2, Loader2, Sparkles, AlertTriangle, ShieldCheck, Clock, Send } from 'lucide-react';
 import Button from '@/components/Button';
+import SafeHTML from '@/components/SafeHTML';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function TakePublicQuiz() {
   const { token } = useParams();
@@ -123,7 +125,7 @@ export default function TakePublicQuiz() {
                     {idx + 1}
                  </div>
                  
-                 <h3 className="text-2xl font-bold mb-10 leading-tight pt-2">{q.question}</h3>
+                 <SafeHTML html={q.question} invert className="text-2xl font-bold mb-10 leading-tight pt-2" />
 
                  {q.quiz_question_type_id === 1 && (
                     <div className="grid grid-cols-1 gap-4">
@@ -145,12 +147,12 @@ export default function TakePublicQuiz() {
                        ))}
                     </div>
                  )}
-
                  {q.quiz_question_type_id === 2 && (
-                    <textarea 
+                    <RichTextEditor 
                        placeholder="Technical response input..."
-                       className="w-full bg-black/40 border border-white/5 rounded-[2rem] p-8 text-lg font-medium outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all min-h-[200px]"
-                       onChange={(e) => handleAnswer(q.id, e.target.value)}
+                       content={answers[q.id] || ''}
+                       onChange={(val) => handleAnswer(q.id, val)}
+                       minHeight="200px"
                     />
                  )}
 

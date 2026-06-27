@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Upload, Loader2, CheckCircle, AlertCircle, Brain, Video, X, Edit3, Save, Sparkles, Eye, Play } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface VideoUploaderProps {
   lessonId: number;
@@ -290,10 +291,11 @@ export default function VideoUploader({ lessonId, courseId, initialVideoUrl = nu
                </div>
 
                {isEditingTranscript ? (
-                  <textarea 
-                     value={transcription}
-                     onChange={(e) => setTranscription(e.target.value)}
-                     className="w-full min-h-[200px] p-6 bg-white border border-blue-100 rounded-2xl text-sm font-medium leading-relaxed focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
+                  <RichTextEditor 
+                     content={transcription}
+                     onChange={setTranscription}
+                     placeholder="Refine the AI generated transcript..."
+                     minHeight="200px"
                   />
                ) : (
                   <div className="max-h-[200px] overflow-y-auto pr-4 scrollbar-thin">

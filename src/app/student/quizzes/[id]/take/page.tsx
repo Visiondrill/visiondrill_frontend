@@ -23,6 +23,8 @@ import {
   X,
 } from 'lucide-react';
 import Button from '@/components/Button';
+import SafeHTML from '@/components/SafeHTML';
+import RichTextEditor from '@/components/RichTextEditor';
 import Link from 'next/link';
 
 interface QuizAnswer {
@@ -470,8 +472,8 @@ export default function TakeStudentQuiz() {
                     }`}>
                       {idx + 1}
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{q.question}</p>
+                    <div className="flex-1">
+                      <SafeHTML html={q.question} className="text-sm font-bold text-gray-900" />
                       <span className="text-[10px] font-bold text-gray-400">
                         {isMcq ? 'Multiple Choice' : isEssay ? 'Essay Response' : 'File Upload'} • {q.points || '?'} pts
                       </span>
@@ -589,7 +591,7 @@ export default function TakeStudentQuiz() {
             {data.quiz.heading}
           </h1>
           {data.quiz.description && (
-            <p className="text-gray-500 font-medium mb-8">{data.quiz.description}</p>
+            <SafeHTML html={data.quiz.description} className="text-gray-500 font-medium mb-8" />
           )}
 
           {/* Key Info */}
@@ -730,7 +732,7 @@ export default function TakeStudentQuiz() {
                 {idx + 1}
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 leading-tight mb-1">{q.question}</h3>
+                <SafeHTML html={q.question} className="text-xl font-bold text-gray-900 leading-tight mb-1" />
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">
                     {q.quiz_question_type_id === 1 ? 'Multiple Choice' :
@@ -770,14 +772,14 @@ export default function TakeStudentQuiz() {
             {/* Essay */}
             {q.quiz_question_type_id === 2 && (
               <div className="ml-14">
-                <textarea
+                <RichTextEditor
                   placeholder="Type your response here..."
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 text-sm font-medium outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all min-h-[180px] resize-y"
-                  value={answers[q.id] || ''}
-                  onChange={e => handleEssayAnswer(q.id, e.target.value)}
+                  content={answers[q.id] || ''}
+                  onChange={val => handleEssayAnswer(q.id, val)}
+                  minHeight="180px"
                 />
                 <p className="text-[10px] text-gray-400 font-medium mt-2">
-                  {(answers[q.id]?.length || 0)} characters typed
+                  {(answers[q.id]?.replace(/<[^>]*>/g, '').length || 0)} characters typed
                 </p>
               </div>
             )}
