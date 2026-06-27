@@ -49,6 +49,15 @@ interface CurriculumEditorProps {
 const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSections }) => {
   const [sections, setSections] = useState<Section[]>(initialSections);
 
+  const fetchSections = async () => {
+    try {
+      const res = await api.get(`/courses/${courseId}`);
+      setSections(res.data.sections);
+    } catch (err) {
+      console.error("Failed to refresh curriculum", err);
+    }
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -115,6 +124,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
                 section={section} 
                 courseId={courseId}
                 onDelete={(id) => setSections(sections.filter(s => s.id !== id))}
+                fetchSections={fetchSections}
               />
             ))}
           </SortableContext>
@@ -133,7 +143,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, initialSe
   );
 };
 
-const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section, courseId: number, onDelete: (id: number) => void }) => {
+const SortableSectionItem = ({ section, courseId, onDelete, fetchSections }: { section: Section, courseId: number, onDelete: (id: number) => void, fetchSections: () => void }) => {
   const {
     attributes,
     listeners,
@@ -314,6 +324,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
                   lesson={lesson} 
                   courseId={courseId}
                   onDelete={(id) => setLessons(lessons.filter(l => l.id !== id))} 
+                  fetchSections={fetchSections}
                 />
               ))}
             </SortableContext>
@@ -350,7 +361,7 @@ const SortableSectionItem = ({ section, courseId, onDelete }: { section: Section
   );
 };
 
-const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, courseId: number, onDelete: (id: number) => void }) => {
+const SortableLessonItem = ({ lesson, courseId, onDelete, fetchSections }: { lesson: Lesson, courseId: number, onDelete: (id: number) => void, fetchSections: () => void }) => {
   const {
     attributes,
     listeners,
@@ -612,8 +623,12 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
             courseId={courseId}
             initialBody={lesson.content?.body || ''}
             initialDocumentUrl={lesson.content?.document_url || null}
+            initialImageUrl={lesson.content?.image_url || null}
             onClose={() => setShowTextEditor(false)}
-            onSaved={() => setShowTextEditor(false)}
+            onSaved={() => {
+              setShowTextEditor(false);
+              fetchSections();
+            }}
           />
         </div>
       )}
@@ -623,7 +638,10 @@ const SortableLessonItem = ({ lesson, courseId, onDelete }: { lesson: Lesson, co
           <QuizEditor 
             lessonId={lesson.id}
             courseId={courseId}
-            onClose={() => setShowQuizEditor(false)}
+            onClose={() => {
+              setShowQuizEditor(false);
+              fetchSections();
+            }}
           />
         </div>
       )}

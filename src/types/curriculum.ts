@@ -4,6 +4,7 @@ export interface LessonContent {
   video_url: string | null;
   body: string | null;
   document_url: string | null;
+  image_url: string | null;
   content_type: 'video' | 'article' | 'quiz';
   lesson_type?: 'video' | 'text' | 'quiz' | 'lecture';
   is_preview: boolean;

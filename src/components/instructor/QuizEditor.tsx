@@ -218,13 +218,13 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
             <div className="flex bg-gray-100 p-1.5 rounded-2xl">
                <button 
                 onClick={() => setActiveTab('settings')}
-                className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${activeTab === 'settings' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${activeTab === 'settings' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                >
                  SETTINGS
                </button>
                <button 
                 onClick={() => setActiveTab('questions')}
-                className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${activeTab === 'questions' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${activeTab === 'questions' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                >
                  QUESTIONS
                </button>
@@ -272,13 +272,13 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
                     <div className="flex gap-4">
                       <button
                         onClick={() => setQuizInfo({...quizInfo, unlimited_time: false})}
-                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${!quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:border-orange-200'}`}
+                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${!quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-200'}`}
                       >
                          Timed
                       </button>
                       <button
                         onClick={() => setQuizInfo({...quizInfo, unlimited_time: true})}
-                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:border-orange-200'}`}
+                        className={`flex-1 p-4 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${quizInfo.unlimited_time ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-200'}`}
                       >
                          No Limit
                       </button>
@@ -365,8 +365,12 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
                                 onChange={(e) => handleUpdateAnswer(qIndex, aIndex, 'answer', e.target.value)}
                                 className="w-full bg-transparent outline-none text-base font-bold text-gray-800"
                               />
-                              <button onClick={() => handleRemoveAnswer(qIndex, aIndex)} className="opacity-0 group-hover/answer:opacity-100 p-2 text-gray-300 hover:text-red-500 transition-all">
-                                <X size={20} />
+                              <button 
+                                onClick={() => handleRemoveAnswer(qIndex, aIndex)} 
+                                className="p-2 text-gray-300 hover:text-red-500 transition-all"
+                                title="Remove answer"
+                              >
+                                <Trash2 size={20} />
                               </button>
                             </div>
                           </div>
@@ -408,7 +412,7 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
                   
                   <button 
                      onClick={handleAddQuestion}
-                     className="w-full py-10 bg-white border-2 border-dashed border-gray-100 rounded-[2.5rem] text-gray-300 font-black tracking-[0.2em] text-xs hover:border-blue-200 hover:text-blue-600 hover:bg-blue-50/20 transition-all flex items-center justify-center gap-4 group uppercase"
+                     className="w-full py-10 bg-white border-2 border-dashed border-gray-100 rounded-[2.5rem] text-gray-500 font-black tracking-[0.2em] text-xs hover:border-blue-200 hover:text-blue-600 hover:bg-blue-50/20 transition-all flex items-center justify-center gap-4 group uppercase"
                   >
                      <Plus size={28} className="group-hover:rotate-90 transition-transform" /> ADD ANOTHER QUESTION
                   </button>
@@ -424,7 +428,7 @@ export default function QuizEditor({ lessonId, courseId, onClose }: QuizEditorPr
              {questions.length} Question{questions.length !== 1 ? 's' : ''} • Passing: {quizInfo.passing_score_percent}%
           </p>
           <div className="flex gap-4">
-            <Button onClick={onClose} className="px-8 border-none text-gray-400 bg-transparent hover:bg-gray-200 uppercase tracking-widest text-[10px] font-black">EXIT EDITOR</Button>
+            <Button onClick={onClose} className="px-8 bg-gray-100 text-gray-600 hover:bg-gray-200 uppercase tracking-widest text-[10px] font-black transition-all">EXIT EDITOR</Button>
             <Button onClick={onClose} className="px-12 bg-gray-900 shadow-xl shadow-gray-200 text-white font-black tracking-widest text-xs h-12 rounded-2xl">DONE</Button>
           </div>
         </div>

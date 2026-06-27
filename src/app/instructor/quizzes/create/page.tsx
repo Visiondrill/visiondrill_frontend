@@ -700,7 +700,7 @@ export default function CreateCommandQuiz() {
                   {questions.length > 1 && (
                     <button
                       onClick={() => removeQuestion(qIdx)}
-                      className="p-2 text-gray-200 hover:text-red-500 transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -744,9 +744,9 @@ export default function CreateCommandQuiz() {
                         {q.answers.length > 1 && (
                           <button
                             onClick={() => removeAnswer(qIdx, aIdx)}
-                            className="p-2 text-gray-200 hover:text-red-500 transition-colors"
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={18} />
                           </button>
                         )}
                       </div>
@@ -793,7 +793,7 @@ export default function CreateCommandQuiz() {
 
             <button
               onClick={addQuestion}
-              className="w-full py-8 border-2 border-dashed border-gray-200 rounded-[2.5rem] flex items-center justify-center gap-3 text-gray-400 hover:border-blue-200 hover:text-blue-500 transition-all font-black text-[10px] tracking-widest uppercase bg-white/50"
+              className="w-full py-8 border-2 border-dashed border-gray-200 rounded-[2.5rem] flex items-center justify-center gap-3 text-gray-500 hover:border-blue-200 hover:text-blue-500 transition-all font-black text-[10px] tracking-widest uppercase bg-white/50"
             >
               <Plus size={20} /> Add Question
             </button>
